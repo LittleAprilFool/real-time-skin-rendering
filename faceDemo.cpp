@@ -13,6 +13,9 @@ GLfloat iBottom = -0.2;
 GLfloat iTop = 0.2;
 GLfloat  zNear = -5;
 GLfloat zFar = 1;
+vec3 mPosition = vec3(0, 0, 0);
+vec3 light_pos = vec3(1.0, 1.0, 1.0);
+vec3 light_color = vec3(1.0, 1.0, 1.0);
 const GLfloat  dr = 5.0 * DegreesToRadians;
 int display_mode;
 float translucency_value;
@@ -50,15 +53,29 @@ void faceDemo::init() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST); // Make round points, not square points  
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
 	//mouse&keyboard function
 	glfwSetKeyCallback(window, keyboard);
 	glfwSetMouseButtonCallback(window, mousecontrol);
 
+	//data initiation
 	display_mode = 1;
 	translucency_value = 0.5;
-
+	Kd = vec3(0.5, 0.5, 0.5);
+	global_ambient = vec3(0.5, 0.5, 0.5);
+	
 	//translate&rotate
-
 }
 
 void faceDemo::mousecontrol(GLFWwindow* window, int button, int action, int mods) {
@@ -66,53 +83,38 @@ void faceDemo::mousecontrol(GLFWwindow* window, int button, int action, int mods
 }
 
 void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-		radius = radius * 1.5;
-		cout << "q pressed" << endl;
-	}
-
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		radius = radius * 0.8;
-		cout << "w pressed" << endl;
-	}
-
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		theta = theta + dr;
-		cout << "left pressed" << endl;
-	}
-
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		theta = theta - dr;
-		cout << "right pressed" << endl;
-	}
-
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		phi = phi + dr;
-		cout << "up pressed" << endl;
-	}
-
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		phi = phi - dr;
-		cout << "down pressed" << endl;
-	}
-
+	if (key == GLFW_KEY_W && action == GLFW_PRESS) light_pos.y += 0.5;
+	if (key == GLFW_KEY_S && action == GLFW_PRESS) light_pos.y -= 0.5;
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) light_pos.x += 0.5;
+	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_pos.x -= 0.5;
+	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_pos.z += 0.5;
+	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_pos.z -= 0.5;
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) theta = theta + dr;
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) theta = theta - dr;
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) mPosition.y += 0.02;
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) mPosition.y -= 0.02;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		radius = 1.0;
+		radius = 1.5;
 		theta = 0.0;
 		phi = 0.0;
-		iLeft = -1.0;
-		iRight = 1;
-		iBottom = -1.0;
-		iTop = 1;
-		zNear = 0.1;
-		zFar = 5.0;
-		cout << "r pressed" << endl;
+		iLeft = -0.2;
+		iRight = 0.2;
+		iBottom = -0.2;
+		iTop = 0.2;
+		zNear = -5;
+		zFar = 1;
+		mPosition = vec3(0.0, 0.0, 0.0);
+		light_pos = vec3(1.0, 1.0, 1.0);
+		light_color = vec3(1.0, 1.0, 1.0);
 	}
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
 	if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS) display_mode = 3;
-	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS && translucency_value < 1) translucency_value += 0.1;
-	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS && translucency_value > 0) translucency_value -= 0.1;
+	if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) light_color = vec3(0.5, 0.5, 0.5);
+	if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) light_color = vec3(0.8, 0.8, 0.8);
+	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) light_color = vec3(1.0, 1.0, 1.0);
+	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) mPosition.z += 0.1;
+	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) mPosition.z -= 0.1;
 	//if (key == GLFW_KEY_1 && action == GLFW_PRESS) radius += 0.2;
 	//if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) radius -= 0.2;
 	//if (key == GLFW_KEY_2 && action == GLFW_PRESS) theta += 0.2;
@@ -146,23 +148,24 @@ void faceDemo::loadShader() {
 
 void faceDemo::initBuffer() {
 	//generate buffers
-	GLuint vboHandles[2];
-	glGenBuffers(2, vboHandles);
+	GLuint vboHandles[3];
+	glGenBuffers(3, vboHandles);
 	GLuint posHandle = vboHandles[0];
 	GLuint texHandle = vboHandles[1];
+	GLuint normHandle = vboHandles[2];
 
 	//add position data into buffers
 	GLfloat *pdata = new GLfloat[iface->faceNum * 12];
 
 	int dataSum = 0;
 
-	for (vector<group>::iterator i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
+	for (std::vector<group>::iterator i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
 	{
-		for (vector<face>::iterator i_face = i_group->begin();  i_face != i_group->end(); i_face ++)
+		for (std::vector<face>::iterator i_face = i_group->begin();  i_face != i_group->end(); i_face ++)
 		{
-			for (vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point ++)
+			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point ++)
 			{
-				int t = *i_point - 1;
+				int t = *i_point;
 				pdata[dataSum] = iface->vertice[t].x;
 				pdata[dataSum + 1] = iface->vertice[t].y;
 				pdata[dataSum + 2] = iface->vertice[t].z;
@@ -180,13 +183,13 @@ void faceDemo::initBuffer() {
 
 	dataSum = 0;
 
-	for (vector<group>::iterator i_group = iface->tgroup.begin(); i_group != iface->tgroup.end(); i_group ++)
+	for (std::vector<group>::iterator i_group = iface->tgroup.begin(); i_group != iface->tgroup.end(); i_group ++)
 	{
-		for (vector<face>::iterator i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
+		for (std::vector<face>::iterator i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
 		{
-			for (vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point++)
 			{
-				int t = *i_point - 1;
+				int t = *i_point;
 				tdata[dataSum] = iface->texture[t].x;
 				tdata[dataSum + 1] = iface->texture[t].y;
 				dataSum += 2;
@@ -198,12 +201,38 @@ void faceDemo::initBuffer() {
 	glBindBuffer(GL_ARRAY_BUFFER, texHandle);
 	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), tdata, GL_STATIC_DRAW);
 	
+	//add normal data into buffers
+	GLfloat *ndata = new GLfloat[iface->faceNum * 12];
+
+	dataSum = 0;
+
+	for (std::vector<group>::iterator i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
+	{
+		for (std::vector<face>::iterator i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
+		{
+			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				ndata[dataSum] = iface->vnormal[t].x;
+				ndata[dataSum + 1] = iface->vnormal[t].y;
+				ndata[dataSum + 2] = iface->vnormal[t].z;
+				dataSum += 3;
+			}
+		}
+	}
+
+	//buffer data
+	glBindBuffer(GL_ARRAY_BUFFER, normHandle);
+	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), ndata, GL_STATIC_DRAW);
+	
 	//generate arrays
 	GLuint vaoHandles;
 	glGenVertexArrays(1, &vaoHandles);
 	glBindVertexArray(vaoHandles);
 
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, posHandle);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
@@ -211,15 +240,32 @@ void faceDemo::initBuffer() {
 	glBindBuffer(GL_ARRAY_BUFFER, texHandle);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 
-	model_view = glGetUniformLocation(program, "model_view");
-	projection = glGetUniformLocation(program, "projection");
-	translucency = glGetUniformLocation(program, "translucency");
+	glBindBuffer(GL_ARRAY_BUFFER, normHandle);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	loc_model_view = glGetUniformLocation(program, "model_view");
+	loc_projection = glGetUniformLocation(program, "projection");
+	loc_translucency = glGetUniformLocation(program, "translucency");
+	loc_map_kd = glGetUniformLocation(program, "map_kd");
+	loc_model_position = glGetUniformLocation(program, "model_pos");
+	loc_light_pos = glGetUniformLocation(program, "light_pos");
+	loc_light_color = glGetUniformLocation(program, "light_color");
+	loc_Kd = glGetUniformLocation(program, "Kd");
+	loc_global_ambient = glGetUniformLocation(program, "global_ambient");
+}
+
+void faceDemo::loadTexture(char* filename) {
+	TextureManager::Inst()->LoadTexture("lambertian.jpg", texture_kd, GL_BGR);
+	TextureManager::Inst()->LoadTexture("bump.jpeg", texture_bump, GL_BGR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    // 线性滤波
 }
 
 void faceDemo::setup() {
-	this->loadOBJ("head.obj");
-	this->loadShader();
-	this->initBuffer();
+	loadOBJ("head.obj");
+	loadShader();
+	loadTexture("lambertian.jpg");
+	initBuffer();
 };
 
 void faceDemo::loop() {
@@ -235,18 +281,29 @@ void faceDemo::loop() {
 
 void faceDemo::render() {
 
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	vec3 eye(radius*sin(theta)*cos(phi),
 		radius*sin(theta)*sin(phi),
 		radius*cos(theta));
 	vec3  at(0.0, 0.0, 0.0);
 	vec3    up(0.0, 1.0, 0.0);
 	mat4  mv = lookAt(eye, at, up);
-	glUniformMatrix4fv(model_view, 1, GL_TRUE, &mv[0][0]);
+	glUniformMatrix4fv(loc_model_view, 1, GL_TRUE, &mv[0][0]);
 	mat4  p = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
-	glUniformMatrix4fv(projection, 1, GL_TRUE, &p[0][0]);
+	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
+	glUniform1f(loc_translucency, translucency_value);
+	glUniform3f(loc_model_position, mPosition.x, mPosition.y, mPosition.z);
+	
+	TextureManager::Inst()->BindTexture(texture_kd);
+	glUniform1i(loc_map_kd, texture_kd);
 
-	glUniform1f(translucency, translucency_value);
+	TextureManager::Inst()->BindTexture(texture_bump);
+	glUniform1i(loc_map_bump, texture_bump);
+
+	glUniform3f(loc_light_pos, light_pos.x, light_pos.y, light_pos.z);
+	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);
+	glUniform3f(loc_Kd, Kd.x, Kd.y, Kd.z);
+	glUniform3f(loc_global_ambient, global_ambient.x, global_ambient.y, global_ambient.z);
 
 	if(display_mode == 1) glDrawArrays(GL_QUADS, 0, iface->faceNum * 4);
 	if(display_mode == 2) glDrawArrays(GL_POINTS, 0, iface->faceNum * 4);
