@@ -15,6 +15,7 @@ public:
 	void setup();
 	void loop();
 private:
+
 	void loadOBJ(char*);
 	void loadShader();
 	void loadTexture(char* filename);
@@ -39,5 +40,4 @@ private:
 	GLuint loc_global_ambient;
 	vec3 Kd;
 	vec3 global_ambient;
-
 };

@@ -247,6 +247,7 @@ void faceDemo::initBuffer() {
 	loc_projection = glGetUniformLocation(program, "projection");
 	loc_translucency = glGetUniformLocation(program, "translucency");
 	loc_map_kd = glGetUniformLocation(program, "map_kd");
+	loc_map_bump = glGetUniformLocation(program, "map_bump");
 	loc_model_position = glGetUniformLocation(program, "model_pos");
 	loc_light_pos = glGetUniformLocation(program, "light_pos");
 	loc_light_color = glGetUniformLocation(program, "light_color");
@@ -255,17 +256,26 @@ void faceDemo::initBuffer() {
 }
 
 void faceDemo::loadTexture(char* filename) {
+	texture_kd = 0;
+	glActiveTexture(GL_TEXTURE0);
 	TextureManager::Inst()->LoadTexture("lambertian.jpg", texture_kd, GL_BGR);
-	TextureManager::Inst()->LoadTexture("bump.jpeg", texture_bump, GL_BGR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    // 线性滤波
+	glUniform1i(loc_map_kd, texture_kd);
+
+
+	texture_bump = 1;
+	glActiveTexture(GL_TEXTURE1);
+	TextureManager::Inst()->LoadTexture("normal.jpg", texture_bump, GL_RGB);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
+	glUniform1i(loc_map_bump, texture_bump);
+	
 }
 
 void faceDemo::setup() {
 	loadOBJ("head.obj");
 	loadShader();
-	loadTexture("lambertian.jpg");
 	initBuffer();
+	loadTexture("lambertian.jpg");
 };
 
 void faceDemo::loop() {
@@ -293,12 +303,6 @@ void faceDemo::render() {
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
 	glUniform1f(loc_translucency, translucency_value);
 	glUniform3f(loc_model_position, mPosition.x, mPosition.y, mPosition.z);
-	
-	TextureManager::Inst()->BindTexture(texture_kd);
-	glUniform1i(loc_map_kd, texture_kd);
-
-	TextureManager::Inst()->BindTexture(texture_bump);
-	glUniform1i(loc_map_bump, texture_bump);
 
 	glUniform3f(loc_light_pos, light_pos.x, light_pos.y, light_pos.z);
 	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);

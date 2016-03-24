@@ -81,11 +81,13 @@ bool TextureManager::LoadTexture(const char* filename, const unsigned int texID,
 		return false;
 	
 	//if this texture ID is in use, unload the current texture
-	if(m_texID.find(texID) != m_texID.end())
+	if (m_texID.find(texID) != m_texID.end()) {
 		glDeleteTextures(1, &(m_texID[texID]));
+	}
 
 	//generate an OpenGL texture ID for this texture
 	glGenTextures(1, &gl_texID);
+	std::cout <<"gl texID:"<<gl_texID << std::endl;
 	//store the texture ID mapping
 	m_texID[texID] = gl_texID;
 	//bind to the new texture ID
