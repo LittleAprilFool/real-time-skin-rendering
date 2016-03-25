@@ -148,22 +148,24 @@ void faceDemo::loadShader() {
 
 void faceDemo::initBuffer() {
 	//generate buffers
-	GLuint vboHandles[3];
-	glGenBuffers(3, vboHandles);
+	GLuint vboHandles[5];
+	glGenBuffers(5, vboHandles);
 	GLuint posHandle = vboHandles[0];
 	GLuint texHandle = vboHandles[1];
 	GLuint normHandle = vboHandles[2];
+	GLuint tHandle = vboHandles[3];
+	GLuint nHandle = vboHandles[4];
 
 	//add position data into buffers
 	GLfloat *pdata = new GLfloat[iface->faceNum * 12];
 
 	int dataSum = 0;
 
-	for (std::vector<group>::iterator i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
+	for (auto i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
 	{
-		for (std::vector<face>::iterator i_face = i_group->begin();  i_face != i_group->end(); i_face ++)
+		for (auto i_face = i_group->begin();  i_face != i_group->end(); i_face ++)
 		{
-			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point ++)
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point ++)
 			{
 				int t = *i_point;
 				pdata[dataSum] = iface->vertice[t].x;
@@ -183,11 +185,11 @@ void faceDemo::initBuffer() {
 
 	dataSum = 0;
 
-	for (std::vector<group>::iterator i_group = iface->tgroup.begin(); i_group != iface->tgroup.end(); i_group ++)
+	for (auto i_group = iface->tgroup.begin(); i_group != iface->tgroup.end(); i_group ++)
 	{
-		for (std::vector<face>::iterator i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
 		{
-			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
 			{
 				int t = *i_point;
 				tdata[dataSum] = iface->texture[t].x;
@@ -206,11 +208,11 @@ void faceDemo::initBuffer() {
 
 	dataSum = 0;
 
-	for (std::vector<group>::iterator i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
+	for (auto i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
 	{
-		for (std::vector<face>::iterator i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
 		{
-			for (std::vector<int>::iterator i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
 			{
 				int t = *i_point;
 				ndata[dataSum] = iface->vnormal[t].x;
@@ -225,6 +227,54 @@ void faceDemo::initBuffer() {
 	glBindBuffer(GL_ARRAY_BUFFER, normHandle);
 	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), ndata, GL_STATIC_DRAW);
 	
+	//add T data into buffers
+	GLfloat *ttdata = new GLfloat[iface->faceNum * 16];
+
+	dataSum = 0;
+
+	for (auto i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group ++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face ++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point ++)
+			{
+				int t = *i_point;
+				ttdata[dataSum] = iface->T[t].a;
+				ttdata[dataSum + 1] = iface->T[t].b;
+				ttdata[dataSum + 2] = iface->T[t].g;
+				ttdata[dataSum + 3] = iface->T[t].w;
+				dataSum += 4;
+			}
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, tHandle);
+	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), ttdata, GL_STATIC_DRAW);
+
+
+	//add N data into buffers
+	GLfloat *nndata = new GLfloat[iface->faceNum * 12];
+	
+	dataSum = 0;
+
+	for (auto i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				nndata[dataSum] = iface->N[t].x;
+				nndata[dataSum + 1] = iface->N[t].y;
+				nndata[dataSum + 2] = iface->N[t].z;
+				dataSum += 3;
+			}
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, nHandle);
+	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), nndata, GL_STATIC_DRAW);
+
 	//generate arrays
 	GLuint vaoHandles;
 	glGenVertexArrays(1, &vaoHandles);
@@ -233,6 +283,8 @@ void faceDemo::initBuffer() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, posHandle);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
@@ -242,6 +294,12 @@ void faceDemo::initBuffer() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, normHandle);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, tHandle);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, nHandle);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 
 	loc_model_view = glGetUniformLocation(program, "model_view");
 	loc_projection = glGetUniformLocation(program, "projection");
@@ -312,7 +370,6 @@ void faceDemo::render() {
 	if(display_mode == 1) glDrawArrays(GL_QUADS, 0, iface->faceNum * 4);
 	if(display_mode == 2) glDrawArrays(GL_POINTS, 0, iface->faceNum * 4);
 	if(display_mode == 3) glDrawArrays(GL_LINES, 0, iface->faceNum * 4);
-
 };
 
 void faceDemo::terminate() {

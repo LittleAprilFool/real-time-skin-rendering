@@ -9,7 +9,6 @@
 using namespace glm;
 
 typedef std::vector<int> face;
-typedef std::vector<vec3> v_n;
 typedef std::vector<face> group;
 
 class obj3d
@@ -19,6 +18,9 @@ public:
 	~obj3d();
 	std::vector<vec3> vertice;
 	std::vector<vec3> vnormal;
+	std::vector<vec4> T;
+	std::vector<vec3> N;
+	std::vector<vec3> B;
 	std::vector<vec2> texture;
 	std::vector<group> vgroup;
 	std::vector<group> tgroup;
@@ -28,6 +30,7 @@ public:
 	int faceNum;
 
 private:
-	std::vector<v_n> vvn;
+	void compute_vnormal();
+	void compute_tbn();
 };
 
