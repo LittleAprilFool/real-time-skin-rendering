@@ -1,10 +1,10 @@
 #pragma once
+#include "stdafx.h"
 class shader
 {
 public:
 	shader();
 	~shader();
-	char* readShader(const char* filename);
 	GLuint initShader(const char* vShaderFile, const char* fShaderFile);
 
 };

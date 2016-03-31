@@ -22,5 +22,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <gli/gli.hpp>
 #include <iostream>
+#include <fstream>
 const float PI = 3.14;
 const float DegreesToRadians = PI / 180;
