@@ -52,6 +52,8 @@ void faceDemo::init() {
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
+	glEnable(GL_MULTISAMPLE);
+
 	glEnable(GL_POINT_SMOOTH);
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST); // Make round points, not square points  
@@ -85,9 +87,7 @@ void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, i
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
 	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) rotate_factor.x -= 0.2;
-	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		
-	}
+
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
 	if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS) display_mode = 3;
@@ -105,7 +105,7 @@ void faceDemo::loadOBJ(char* filename) {
 
 void faceDemo::loadShader() {
 	bling = new shader;
-	program = bling->initShader("vtest.glsl", "ftest.glsl");
+	program = bling->initShader("vbling.glsl", "fbling.glsl");
 	glUseProgram(program);
 };
 
@@ -240,9 +240,8 @@ void faceDemo::initBuffer() {
 	loc_translucency = glGetUniformLocation(program, "translucency");
 	loc_map_kd = glGetUniformLocation(program, "map_kd");
 	loc_map_bump = glGetUniformLocation(program, "map_bump");
-	loc_model_position = glGetUniformLocation(program, "model_pos");
-	loc_light_pos = glGetUniformLocation(program, "light_pos");
-	loc_light_color = glGetUniformLocation(program, "light_color");
+	loc_light_pos = glGetUniformLocation(program, "Light.position");
+	loc_light_color = glGetUniformLocation(program, "Light.color");
 	loc_Kd = glGetUniformLocation(program, "Kd");
 	loc_global_ambient = glGetUniformLocation(program, "global_ambient");
 }
@@ -303,7 +302,6 @@ void faceDemo::render() {
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
 	
 	glUniform1f(loc_translucency, translucency_value);
-	glUniform3f(loc_model_position, mPosition.x, mPosition.y, mPosition.z);
 
 	glUniform3f(loc_light_pos, light_pos.x, light_pos.y, light_pos.z);
 	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);

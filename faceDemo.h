@@ -28,7 +28,6 @@ private:
 	GLint program;
 	GLuint loc_model_view;
 	GLuint loc_projection;
-	GLuint loc_model_position;
 	GLuint loc_translucency;
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
