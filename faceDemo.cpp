@@ -3,22 +3,14 @@
 
 #include "stdafx.h"
 #include "faceDemo.h"
-
-GLfloat radius = 1.5;
-GLfloat theta = 0.0;
-GLfloat phi = 0.0;
-GLfloat  iLeft = -0.2;
-GLfloat iRight = 0.2;
-GLfloat iBottom = -0.2;
-GLfloat iTop = 0.2;
-GLfloat  zNear = -5;
-GLfloat zFar = 1;
 vec3 mPosition = vec3(0, 0, 0);
 vec3 light_pos = vec3(1.0, 1.0, 1.0);
 vec3 light_color = vec3(1.0, 1.0, 1.0);
 const GLfloat  dr = 5.0 * DegreesToRadians;
 int display_mode;
 float translucency_value;
+float scale_factor = 1;
+vec3 rotate_factor = vec3(0);
 
 faceDemo::faceDemo() {
 };
@@ -89,23 +81,12 @@ void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, i
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_pos.x -= 0.5;
 	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_pos.z += 0.5;
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_pos.z -= 0.5;
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) theta = theta + dr;
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) theta = theta - dr;
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) mPosition.y += 0.02;
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) mPosition.y -= 0.02;
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) rotate_factor.x -= 0.2;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		radius = 1.5;
-		theta = 0.0;
-		phi = 0.0;
-		iLeft = -0.2;
-		iRight = 0.2;
-		iBottom = -0.2;
-		iTop = 0.2;
-		zNear = -5;
-		zFar = 1;
-		mPosition = vec3(0.0, 0.0, 0.0);
-		light_pos = vec3(1.0, 1.0, 1.0);
-		light_color = vec3(1.0, 1.0, 1.0);
+		
 	}
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
@@ -113,26 +94,8 @@ void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, i
 	if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) light_color = vec3(0.5, 0.5, 0.5);
 	if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) light_color = vec3(0.8, 0.8, 0.8);
 	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) light_color = vec3(1.0, 1.0, 1.0);
-	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) mPosition.z += 0.1;
-	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) mPosition.z -= 0.1;
-	//if (key == GLFW_KEY_1 && action == GLFW_PRESS) radius += 0.2;
-	//if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) radius -= 0.2;
-	//if (key == GLFW_KEY_2 && action == GLFW_PRESS) theta += 0.2;
-	//if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) theta -= 0.2;
-	//if (key == GLFW_KEY_2 && action == GLFW_PRESS) phi += 0.2;
-	//if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) phi -= 0.2;
-	//if (key == GLFW_KEY_3 && action == GLFW_PRESS) iLeft += 0.2;
-	//if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS) iLeft -= 0.2;
-	//if (key == GLFW_KEY_4 && action == GLFW_PRESS) iRight += 0.2;
-	//if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) iRight -= 0.2;
-	//if (key == GLFW_KEY_5 && action == GLFW_PRESS) iBottom += 0.2;
-	//if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) iBottom -= 0.2;
-	//if (key == GLFW_KEY_6 && action == GLFW_PRESS) iTop += 0.2;
-	//if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) iTop -= 0.2;
-	//if (key == GLFW_KEY_7 && action == GLFW_PRESS) zNear += 0.2;
-	//if (key == GLFW_KEY_KP_7 && action == GLFW_PRESS) zNear -= 0.2;
-	//if (key == GLFW_KEY_8 && action == GLFW_PRESS) zFar += 0.2;
-	//if (key == GLFW_KEY_KP_8 && action == GLFW_PRESS) zFar -= 0.2;
+	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
+	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
 
 void faceDemo::loadOBJ(char* filename) {
@@ -142,19 +105,18 @@ void faceDemo::loadOBJ(char* filename) {
 
 void faceDemo::loadShader() {
 	bling = new shader;
-	program = bling->initShader("vbling.glsl", "fbling.glsl");
+	program = bling->initShader("vtest.glsl", "ftest.glsl");
 	glUseProgram(program);
 };
 
 void faceDemo::initBuffer() {
 	//generate buffers
-	GLuint vboHandles[5];
-	glGenBuffers(5, vboHandles);
+	GLuint vboHandles[4];
+	glGenBuffers(4, vboHandles);
 	GLuint posHandle = vboHandles[0];
 	GLuint texHandle = vboHandles[1];
 	GLuint normHandle = vboHandles[2];
 	GLuint tHandle = vboHandles[3];
-	GLuint nHandle = vboHandles[4];
 
 	//add position data into buffers
 	GLfloat *pdata = new GLfloat[iface->faceNum * 12];
@@ -251,30 +213,6 @@ void faceDemo::initBuffer() {
 	glBindBuffer(GL_ARRAY_BUFFER, tHandle);
 	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), ttdata, GL_STATIC_DRAW);
 
-
-	//add N data into buffers
-	GLfloat *nndata = new GLfloat[iface->faceNum * 12];
-	
-	dataSum = 0;
-
-	for (auto i_group = iface->vgroup.begin(); i_group != iface->vgroup.end(); i_group++)
-	{
-		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
-		{
-			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
-			{
-				int t = *i_point;
-				nndata[dataSum] = iface->N[t].x;
-				nndata[dataSum + 1] = iface->N[t].y;
-				nndata[dataSum + 2] = iface->N[t].z;
-				dataSum += 3;
-			}
-		}
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, nHandle);
-	glBufferData(GL_ARRAY_BUFFER, dataSum * sizeof(GLfloat), nndata, GL_STATIC_DRAW);
-
 	//generate arrays
 	GLuint vaoHandles;
 	glGenVertexArrays(1, &vaoHandles);
@@ -284,7 +222,6 @@ void faceDemo::initBuffer() {
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, posHandle);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
@@ -297,9 +234,6 @@ void faceDemo::initBuffer() {
 
 	glBindBuffer(GL_ARRAY_BUFFER, tHandle);
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, nHandle);
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 
 	loc_model_view = glGetUniformLocation(program, "model_view");
 	loc_projection = glGetUniformLocation(program, "projection");
@@ -316,14 +250,14 @@ void faceDemo::initBuffer() {
 void faceDemo::loadTexture(char* filename) {
 	texture_kd = 0;
 	glActiveTexture(GL_TEXTURE0);
-	TextureManager::Inst()->LoadTexture("lambertian.jpg", texture_kd, GL_BGR);
+	TextureManager::Inst()->LoadTexture("head-texture.jpg", texture_kd, GL_BGR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
 	glUniform1i(loc_map_kd, texture_kd);
 
 
 	texture_bump = 1;
 	glActiveTexture(GL_TEXTURE1);
-	TextureManager::Inst()->LoadTexture("normal.jpg", texture_bump, GL_RGB);
+	TextureManager::Inst()->LoadTexture("head-normal.jpg", texture_bump, GL_RGB);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
 	glUniform1i(loc_map_bump, texture_bump);
 	
@@ -350,15 +284,24 @@ void faceDemo::loop() {
 void faceDemo::render() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	vec3 eye(radius*sin(theta)*cos(phi),
-		radius*sin(theta)*sin(phi),
-		radius*cos(theta));
-	vec3  at(0.0, 0.0, 0.0);
-	vec3    up(0.0, 1.0, 0.0);
-	mat4  mv = lookAt(eye, at, up);
+	vec3 eye(1.0, 0.0, 0.0);
+	vec3 at(0.0, 0.0, 0.0);
+	vec3 up(0.0, 1.0, 0.0);
+	mat4 mv = lookAt(eye, at, up);
+	mv = scale(mv, vec3(scale_factor));
+	mv = rotate<float>(mv, rotate_factor.y, vec3(0, 1, 0));
+	mv = rotate<float>(mv, rotate_factor.x, vec3(1, 0, 0));
 	glUniformMatrix4fv(loc_model_view, 1, GL_TRUE, &mv[0][0]);
+	
+	GLfloat  iLeft = -0.2;
+	GLfloat iRight = 0.2;
+	GLfloat iBottom = -0.2;
+	GLfloat iTop = 0.2;
+	GLfloat  zNear = -5;
+	GLfloat zFar = 1;
 	mat4  p = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
+	
 	glUniform1f(loc_translucency, translucency_value);
 	glUniform3f(loc_model_position, mPosition.x, mPosition.y, mPosition.z);
 

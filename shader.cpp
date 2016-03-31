@@ -57,6 +57,7 @@ GLuint shader::initShader(const char* vShaderFile, const char* fShaderFile) {
 
 		GLint  compiled;
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+		std::cout << compiled << std::endl;
 		if (!compiled) {
 			std::cerr << s.filename << " failed to compile:" << std::endl;
 			GLint  logSize;

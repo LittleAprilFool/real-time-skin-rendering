@@ -84,6 +84,11 @@ void obj3d::loadMesh(char* filename) {
 
 	compute_vnormal();
 	compute_tbn();
+	//print_vertice();
+	//print_vnormal();
+	//print_texture();
+	//print_T();
+	//print_B();
 }
 
 void obj3d::compute_vnormal() {
@@ -120,6 +125,8 @@ void obj3d::compute_vnormal() {
 	}
 }
 
+
+//get T
 void obj3d::compute_tbn() {
 	std::vector<std::vector<vec3> > vt;
 	std::vector<std::vector<vec3> > vn;
@@ -132,18 +139,24 @@ void obj3d::compute_tbn() {
 		vb.push_back(tmp);
 	}
 
-	for (auto gr = vgroup.cbegin(); gr != vgroup.cend(); gr ++)
+	for (int i = 0; i != vgroup.size(); i ++)
 	{
-		for (auto fc = gr->cbegin(); fc != gr->cend(); fc ++)
+		group vg = vgroup[i];
+		group tg = tgroup[i];
+		int nf = 0;
+		for (int j = 0; j != vg.size(); j++)
 		{
-			vec3 v1 = vertice[fc->at(0)];
-			vec3 v2 = vertice[fc->at(1)];
-			vec3 v3 = vertice[fc->at(2)];
+			face vfc = vg[j];
+			face tfc = tg[j];
+			nf++;
 
-			vec2 w1 = texture[fc->at(0)];
-			vec2 w2 = texture[fc->at(1)];
-			vec2 w3 = texture[fc->at(2)];
-
+			vec3 v1 = vertice[vfc[0]];
+			vec3 v2 = vertice[vfc[1]];
+			vec3 v3 = vertice[vfc[2]];
+		
+			vec2 w1 = texture[tfc[0]];
+			vec2 w2 = texture[tfc[1]];
+			vec2 w3 = texture[tfc[2]];
 			float x1 = v2.x - v1.x;
 			float x2 = v3.x - v1.x;
 			float y1 = v2.y - v1.y;
@@ -156,22 +169,31 @@ void obj3d::compute_tbn() {
 			float t1 = w2.y - w1.y;
 			float t2 = w3.y - w1.y;
 
-			float r = 1.0F / (s1 * t2 - s2 * t1);
-
-			vec3 t = vec3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r, (t2 * z1 - t1 * z2) * r);
+			float r;
+			if ((s1*t2 - s2*t1) == 0) r = 0;
+			else r = 1.0F / (s1 * t2 - s2 * t1);
+			vec3 t = vec3(
+				(t2 * x1 - t1 * x2) * r, 
+				(t2 * y1 - t1 * y2) * r, 
+				(t2 * z1 - t1 * z2) * r);
 			
 			vec3 b = vec3(
 				(s1 * x2 - s2 * x1) * r,
 				(s1 * y2 - s2 * y1) * r,
-				(s1 * z2 - s2 * y1) * r);
+				(s1 * z2 - s2 * z1) * r);
+
+			t = normalize(t);
+			b = normalize(b);
 
 			vec3 n = normalize(cross(t, b));
 
-			for (auto p = fc->cbegin(); p != fc->cend(); p++) 
+			for (auto p = vfc.cbegin(); p != vfc.cend(); p++) 
 			{
-				vt[*p].push_back(t);
-				vb[*p].push_back(b);
-				vn[*p].push_back(n);
+				if (r != 0) {
+					vt[*p].push_back(t);
+					vb[*p].push_back(b);
+					vn[*p].push_back(n);
+				}
 			}
 		}
 	}
@@ -212,19 +234,72 @@ void obj3d::compute_tbn() {
 	//// Reference: http://www.terathon.com/code/tangent.html
 	for (int p = 0; p != vt.size(); p++) 
 	{
+		//std::cout << "log info of p" << p << std::endl;
 		vec3 sum;
+		//std::cout << vt[p].size() << std::endl;
 		for (auto tt = vt[p].begin(); tt != vt[p].end(); tt++) 
 		{
 			sum = sum + *tt;
+			//std::cout <<"sum:"<<sum.x<<" "<<sum.y<<" "<<sum.z<< std::endl;
 		}
 		vec3 norm = vnormal[p];
 		vec3 tan = normalize(sum);
 		vec3 tan2 = B[p];
 
+		//std::cout <<"norm "<< norm.x << " " << norm.y << " " << norm.z << std::endl;
+		//std::cout <<"tan  "<<tan.x<<" " << tan.y<<" "<<tan.z<< std::endl;
+
 		vec4 tangent = vec4(normalize(tan - norm * dot(norm, tan)),0);
 		
 		tangent.w = (dot(cross(norm, tan), tan2) < 0.0F) ? -1.0F : 1.0F;
 
+//		std::cout <<"tangent"<<tangent.r<<" "<< tangent.g<<" "<< tangent.b<<" "<< tangent.a << std::endl;
+		
 		T.push_back(tangent);
+	}
+}
+
+void obj3d::print_vertice() {
+	std::cout << "this is the vertice vector" << std::endl;
+	int num = 0;
+	for (auto v = vertice.begin(); v != vertice.end(); v++) {
+		num ++;
+		std::cout <<num<<":"<<v->x << " " << v->y << " " << v->z << std::endl;
+	}
+}
+
+void obj3d::print_vnormal() {
+	std::cout << "this is the vnormal vector" << std::endl;
+	int num = 0;
+	for (auto v = vnormal.begin(); v != vnormal.end(); v++) {
+		num++;
+		std::cout << num << ":" << v->x << " " << v->y << " " << v->z << std::endl;
+	}
+}
+
+void obj3d::print_texture() {
+	std::cout << "this is the texture vector" << std::endl;
+	int num = 0;
+	for (auto v = texture.begin(); v != texture.end(); v++) {
+		num++;
+		std::cout << num << ":" << v->x << " " << v->y << std::endl;
+	}
+}
+
+void obj3d::print_T() {
+	std::cout << "this is the T vector" << std::endl;
+	int num = 0;
+	for (auto v = T.begin(); v != T.end(); v++) {
+		num++;
+		std::cout << num << ":" << v->x << " " << v->y << " " << v->z <<" "<< v->a<< std::endl;
+	}
+}
+
+void obj3d::print_B() {
+	std::cout << "this is the B vector" << std::endl;
+	int num = 0;
+	for (auto v = B.begin(); v != B.end(); v++) {
+		num++;
+		std::cout << num << ":" << v->x << " " << v->y << " " << v->z << std::endl;
 	}
 }

@@ -32,5 +32,10 @@ public:
 private:
 	void compute_vnormal();
 	void compute_tbn();
+	void print_vertice();
+	void print_vnormal();
+	void print_texture();
+	void print_T();
+	void print_B();
 };
 
