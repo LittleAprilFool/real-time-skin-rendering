@@ -18,8 +18,9 @@ private:
 
 	void loadOBJ(char*);
 	void loadShader();
-	void loadTexture(char* filename);
+	void loadTexture(char* file_kd, char* file_bump);
 	void initBuffer();
+	void initFBO();
 	static void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void mousecontrol(GLFWwindow* window, int button, int action, int mods);
 	GLFWwindow* window;
@@ -37,6 +38,7 @@ private:
 	GLuint loc_light_color;
 	GLuint loc_Kd;
 	GLuint loc_global_ambient;
+	GLuint loc_mode;
 	vec3 Kd;
 	vec3 global_ambient;
 };

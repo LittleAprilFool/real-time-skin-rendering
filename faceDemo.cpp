@@ -4,13 +4,14 @@
 #include "stdafx.h"
 #include "faceDemo.h"
 vec3 mPosition = vec3(0, 0, 0);
-vec3 light_pos = vec3(1.0, 1.0, 1.0);
+vec3 light_pos = vec3(100.0, 100.0, 100.0);
 vec3 light_color = vec3(1.0, 1.0, 1.0);
 const GLfloat  dr = 5.0 * DegreesToRadians;
 int display_mode;
 float translucency_value;
 float scale_factor = 1;
 vec3 rotate_factor = vec3(0);
+int shading_mode;
 
 faceDemo::faceDemo() {
 };
@@ -65,6 +66,7 @@ void faceDemo::init() {
 
 	//data initiation
 	display_mode = 1;
+	shading_mode = 1;
 	translucency_value = 0.5;
 	Kd = vec3(0.5, 0.5, 0.5);
 	global_ambient = vec3(0.5, 0.5, 0.5);
@@ -77,12 +79,12 @@ void faceDemo::mousecontrol(GLFWwindow* window, int button, int action, int mods
 }
 
 void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) light_pos.y += 0.5;
-	if (key == GLFW_KEY_S && action == GLFW_PRESS) light_pos.y -= 0.5;
-	if (key == GLFW_KEY_A && action == GLFW_PRESS) light_pos.x += 0.5;
-	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_pos.x -= 0.5;
-	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_pos.z += 0.5;
-	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_pos.z -= 0.5;
+	if (key == GLFW_KEY_W && action == GLFW_PRESS) light_pos.y += 50;
+	if (key == GLFW_KEY_S && action == GLFW_PRESS) light_pos.y -= 50;
+	if (key == GLFW_KEY_A && action == GLFW_PRESS) light_pos.x += 50;
+	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_pos.x -= 50;
+	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_pos.z += 50;
+	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_pos.z -= 50;
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
@@ -91,9 +93,9 @@ void faceDemo::keyboard(GLFWwindow* window, int key, int scancode, int action, i
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
 	if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS) display_mode = 3;
-	if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) light_color = vec3(0.5, 0.5, 0.5);
-	if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) light_color = vec3(0.8, 0.8, 0.8);
-	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) light_color = vec3(1.0, 1.0, 1.0);
+	if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) shading_mode = 1;
+	if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) shading_mode = 2;
+	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) shading_mode = 3;
 	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
@@ -244,29 +246,66 @@ void faceDemo::initBuffer() {
 	loc_light_color = glGetUniformLocation(program, "Light.color");
 	loc_Kd = glGetUniformLocation(program, "Kd");
 	loc_global_ambient = glGetUniformLocation(program, "global_ambient");
+	loc_mode = glGetUniformLocation(program, "mode");
 }
 
-void faceDemo::loadTexture(char* filename) {
+void faceDemo::loadTexture(char* file_kd, char* file_bump) {
 	texture_kd = 0;
 	glActiveTexture(GL_TEXTURE0);
-	TextureManager::Inst()->LoadTexture("head-texture.jpg", texture_kd, GL_BGR);
+	TextureManager::Inst()->LoadTexture(file_kd, texture_kd, GL_BGR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
 	glUniform1i(loc_map_kd, texture_kd);
 
 
 	texture_bump = 1;
 	glActiveTexture(GL_TEXTURE1);
-	TextureManager::Inst()->LoadTexture("head-normal.jpg", texture_bump, GL_RGB);
+	TextureManager::Inst()->LoadTexture(file_bump, texture_bump, GL_RGB);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // 线性滤波
 	glUniform1i(loc_map_bump, texture_bump);
-	
+}
+
+void faceDemo::initFBO() {
+	//create the shadow map texture
+	GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
+	int smWidth = 1024;
+	int smHeight = 1024;
+	GLuint depthTex;
+	glGenTextures(1, &depthTex);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, smWidth, smHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+	//assign the shadow map to texture channel 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+
+	//create and set up the FBO
+	GLuint shadowFBO;
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+
+	GLenum drawBuffers[] = { GL_NONE };
+	glDrawBuffers(1, drawBuffers);
+
+	//revert to the default framebuffer for now
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void faceDemo::setup() {
+	//loadOBJ("cube.obj");
 	loadOBJ("head.obj");
 	loadShader();
 	initBuffer();
-	loadTexture("lambertian.jpg");
+	initFBO();
+	//loadTexture("cube-texture.jpeg", "cube-normal.jpeg");
+	loadTexture("head-texture.jpg", "head-normal.jpg");
 };
 
 void faceDemo::loop() {
@@ -302,6 +341,7 @@ void faceDemo::render() {
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
 	
 	glUniform1f(loc_translucency, translucency_value);
+	glUniform1f(loc_mode, shading_mode);
 
 	glUniform3f(loc_light_pos, light_pos.x, light_pos.y, light_pos.z);
 	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);
