@@ -1,3 +1,8 @@
 Debug/
 *.vcxproj
 *.filters
+*.jpeg
+*.jpg
+*.obj
+*.mtl
+*.png
