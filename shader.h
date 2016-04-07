@@ -1,11 +1,9 @@
 #pragma once
 #include "stdafx.h"
-class shader
+class ShaderProgram
 {
 public:
-	shader();
-	~shader();
-	GLuint initShader(const char* vShaderFile, const char* fShaderFile);
-
+	ShaderProgram();
+	~ShaderProgram();
+	GLuint InitShader(const char* vertex_shader_file, const char* fragment_shader_file);
 };
-

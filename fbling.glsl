@@ -4,7 +4,7 @@ in vec2 texcoord;
 in vec4 position;
 in vec4 normal;
 in vec4 T;
-out vec4 fColor;
+layout(location = 0) out vec4 fColor;
 
 uniform vec3 model_pos;
 

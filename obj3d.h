@@ -5,17 +5,18 @@
 #include <string>
 #include <sstream>
 #include <stdio.h>
+#include "shader.h"
 
 using namespace glm;
 
 typedef std::vector<int> face;
 typedef std::vector<face> group;
 
-class obj3d
+class Object
 {
 public:
-	obj3d();
-	~obj3d();
+	Object();
+	~Object();
 	std::vector<vec3> vertice;
 	std::vector<vec3> vnormal;
 	std::vector<vec4> T;
@@ -25,17 +26,23 @@ public:
 	std::vector<group> vgroup;
 	std::vector<group> tgroup;
 
-	void loadMesh(char* filename);
-	void clear();
-	int faceNum;
+	void LoadMesh(char* filename);
+	void AttachShader(const char* vertex_shader_filename, const char* fragment_shader_filename);
+	void BufferObjectData();
+	void Clear();
+	int face_number;
+	GLuint shader_ID;
+
+protected:
+	void ComputeVnormal();
+	void ComputeTBN();
+	ShaderProgram* shader;
 
 private:
-	void compute_vnormal();
-	void compute_tbn();
-	void print_vertice();
-	void print_vnormal();
-	void print_texture();
-	void print_T();
-	void print_B();
+	void PrintVertice();
+	void PrintVnormal();
+	void PrintTexture();
+	void PrintT();
+	void PrintB();
 };
 

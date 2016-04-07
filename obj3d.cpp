@@ -1,35 +1,34 @@
 #include "stdafx.h"
 #include "obj3d.h"
 
-obj3d::obj3d()
+Object::Object()
 {
 }
 
 
-obj3d::~obj3d()
+Object::~Object()
 {
 }
 
-void obj3d::clear() {
+void Object::Clear() {
 	vertice.clear();
 	texture.clear();
 	vgroup.clear();
-	faceNum = 0;
+	face_number = 0;
 }
 
-void obj3d::loadMesh(char* filename) {
+void Object::LoadMesh(char* filename) {
 	std::ifstream infile(filename);
 	std::string line;
 	group ivgroup;
 	group itgroup;
-	faceNum = 0;
+	face_number = 0;
 	//read obj file line by line
 	while (std::getline(infile, line))
 	{
 		std::istringstream ss(line);
 		std::string sub;
 		ss >> sub;
-
 		//vertices
 		if (sub.compare("v") == 0)
 		{
@@ -52,7 +51,7 @@ void obj3d::loadMesh(char* filename) {
 		//group
 		if (sub.compare("g") == 0)
 		{
-			if (faceNum != 0) {
+			if (face_number != 0) {
 				vgroup.push_back(ivgroup);
 				tgroup.push_back(itgroup);
 			}
@@ -76,22 +75,22 @@ void obj3d::loadMesh(char* filename) {
 			}
 			ivgroup.push_back(vface);
 			itgroup.push_back(tface);
-			faceNum++;
+			face_number++;
 		}
 	}
 	vgroup.push_back(ivgroup);
 	tgroup.push_back(itgroup);
 
-	compute_vnormal();
-	compute_tbn();
-	//print_vertice();
-	//print_vnormal();
-	//print_texture();
-	//print_T();
-	//print_B();
+	ComputeVnormal();
+	ComputeTBN();
 }
 
-void obj3d::compute_vnormal() {
+void Object::AttachShader(const char* vertex_shader_filename, const char* fragment_shader_filename) {
+	shader = new ShaderProgram;
+	shader_ID = shader->InitShader(vertex_shader_filename, fragment_shader_filename);
+}
+
+void Object::ComputeVnormal() {
 	std::vector<std::vector<vec3> > vvn;
 	for (auto i = vertice.cbegin(); i!= vertice.cend(); i++)
 	{
@@ -127,7 +126,7 @@ void obj3d::compute_vnormal() {
 
 
 //get T
-void obj3d::compute_tbn() {
+void Object::ComputeTBN() {
 	std::vector<std::vector<vec3> > vt;
 	std::vector<std::vector<vec3> > vn;
 	std::vector<std::vector<vec3> > vb;
@@ -259,7 +258,7 @@ void obj3d::compute_tbn() {
 	}
 }
 
-void obj3d::print_vertice() {
+void Object::PrintVertice() {
 	std::cout << "this is the vertice vector" << std::endl;
 	int num = 0;
 	for (auto v = vertice.begin(); v != vertice.end(); v++) {
@@ -268,7 +267,7 @@ void obj3d::print_vertice() {
 	}
 }
 
-void obj3d::print_vnormal() {
+void Object::PrintVnormal() {
 	std::cout << "this is the vnormal vector" << std::endl;
 	int num = 0;
 	for (auto v = vnormal.begin(); v != vnormal.end(); v++) {
@@ -277,7 +276,7 @@ void obj3d::print_vnormal() {
 	}
 }
 
-void obj3d::print_texture() {
+void Object::PrintTexture() {
 	std::cout << "this is the texture vector" << std::endl;
 	int num = 0;
 	for (auto v = texture.begin(); v != texture.end(); v++) {
@@ -286,7 +285,7 @@ void obj3d::print_texture() {
 	}
 }
 
-void obj3d::print_T() {
+void Object::PrintT() {
 	std::cout << "this is the T vector" << std::endl;
 	int num = 0;
 	for (auto v = T.begin(); v != T.end(); v++) {
@@ -295,11 +294,140 @@ void obj3d::print_T() {
 	}
 }
 
-void obj3d::print_B() {
+void Object::PrintB() {
 	std::cout << "this is the B vector" << std::endl;
 	int num = 0;
 	for (auto v = B.begin(); v != B.end(); v++) {
 		num++;
 		std::cout << num << ":" << v->x << " " << v->y << " " << v->z << std::endl;
 	}
+}
+
+void Object::BufferObjectData() {
+	glUseProgram(shader_ID);
+	
+	//generate buffers
+	GLuint vbo_handles[4];
+	glGenBuffers(4, vbo_handles);
+	GLuint position_handle = vbo_handles[0];
+	GLuint texture_handle = vbo_handles[1];
+	GLuint normal_handle = vbo_handles[2];
+	GLuint tangent_handle = vbo_handles[3];
+
+	//add position data into buffers
+	GLfloat *position_data = new GLfloat[face_number * 12];
+
+	int data_sum = 0;
+
+	for (auto i_group = vgroup.begin(); i_group != vgroup.end(); i_group++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				position_data[data_sum + 0] = vertice[t].x;
+				position_data[data_sum + 1] = vertice[t].y;
+				position_data[data_sum + 2] = vertice[t].z;
+				data_sum += 3;
+			}
+		}
+	}
+
+	//buffer data
+	glBindBuffer(GL_ARRAY_BUFFER, position_handle);
+	glBufferData(GL_ARRAY_BUFFER, data_sum * sizeof(GLfloat), position_data, GL_STATIC_DRAW);
+
+	//add texcoord data into buffers
+	GLfloat *texture_data = new GLfloat[face_number * 8];
+
+	data_sum = 0;
+
+	for (auto i_group = tgroup.begin(); i_group != tgroup.end(); i_group++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				texture_data[data_sum + 0] = texture[t].x;
+				texture_data[data_sum + 1] = texture[t].y;
+				data_sum += 2;
+			}
+		}
+	}
+
+	//buffer data
+	glBindBuffer(GL_ARRAY_BUFFER, texture_handle);
+	glBufferData(GL_ARRAY_BUFFER, data_sum * sizeof(GLfloat), texture_data, GL_STATIC_DRAW);
+
+	//add normal data into buffers
+	GLfloat *normal_data = new GLfloat[face_number * 12];
+
+	data_sum = 0;
+
+	for (auto i_group = vgroup.begin(); i_group != vgroup.end(); i_group++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				normal_data[data_sum + 0] = vnormal[t].x;
+				normal_data[data_sum + 1] = vnormal[t].y;
+				normal_data[data_sum + 2] = vnormal[t].z;
+				data_sum += 3;
+			}
+		}
+	}
+
+	//buffer data
+	glBindBuffer(GL_ARRAY_BUFFER, normal_handle);
+	glBufferData(GL_ARRAY_BUFFER, data_sum * sizeof(GLfloat), normal_data, GL_STATIC_DRAW);
+
+	//add T data into buffers
+	GLfloat *tangent_data = new GLfloat[face_number * 16];
+
+	data_sum = 0;
+
+	for (auto i_group = vgroup.begin(); i_group != vgroup.end(); i_group++)
+	{
+		for (auto i_face = i_group->begin(); i_face != i_group->end(); i_face++)
+		{
+			for (auto i_point = i_face->begin(); i_point != i_face->end(); i_point++)
+			{
+				int t = *i_point;
+				tangent_data[data_sum + 0] = T[t].a;
+				tangent_data[data_sum + 1] = T[t].b;
+				tangent_data[data_sum + 2] = T[t].g;
+				tangent_data[data_sum + 3] = T[t].w;
+				data_sum += 4;
+			}
+		}
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, tangent_handle);
+	glBufferData(GL_ARRAY_BUFFER, data_sum * sizeof(GLfloat), tangent_data, GL_STATIC_DRAW);
+
+	//generate arrays
+	GLuint vao_handles;
+	glGenVertexArrays(1, &vao_handles);
+	glBindVertexArray(vao_handles);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+
+	glBindBuffer(GL_ARRAY_BUFFER, position_handle);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, texture_handle);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normal_handle);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+	glBindBuffer(GL_ARRAY_BUFFER, tangent_handle);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 }
