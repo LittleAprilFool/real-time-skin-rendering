@@ -33,9 +33,16 @@ private:
 	GLuint loc_mode;
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
+	GLuint loc_map_rendered;
 	GLuint texture_kd_ID;
 	GLuint texture_bump_ID;
+	GLuint texture_rendered_ID;
+	GLuint depth_buffer_ID;
 	void InitParameters_();
-	void GetUniformLocations_();
+	void GetUniformLocations_(GLuint shader_ID);
+	void InitFBO_();
+	GLuint FBO_ID;
+	GLuint CreateRenderTexture_();
+	void PrintLoc_();
 };
 

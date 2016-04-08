@@ -1,8 +1,11 @@
 #version 400
 
+in vec2 texcoord;
 out vec4 fColor;
+
+uniform sampler2D map_rendered;
 
 void main()
 {
-	fColor = vec4(1,1,0,1);
+	fColor = texture2D(map_rendered, texcoord);
 }

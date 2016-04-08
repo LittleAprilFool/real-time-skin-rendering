@@ -7,14 +7,12 @@ class faceDemo {
 public:
 	faceDemo();
 	~faceDemo();
-	void init();
-	void render();
-	void terminate();
-	void loop();
+	void Init();
+	void Render();
+	void Terminate();
+	void Loop();
 private:
-	void initFBO();
-	GLuint createRT();
-	static void keyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void mousecontrol(GLFWwindow* window, int button, int action, int mods);
+	static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void MouseControl(GLFWwindow* window, int button, int action, int mods);
 	GLFWwindow* window;
 };

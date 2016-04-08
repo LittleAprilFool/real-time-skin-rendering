@@ -2,6 +2,7 @@
 #include "myscene.h"
 
 Object head;
+Object cube;
 
 HeadScene::HeadScene()
 {
@@ -51,14 +52,25 @@ void HeadScene::RenderScene()
 void HeadScene::InitScene() 
 {
 	InitParameters_();
+	
 	head.LoadMesh("head.obj");
 	head.AttachShader("vbling.glsl", "fbling.glsl");
 	head.BufferObjectData();
-	GetUniformLocations_();
+	GetUniformLocations_(head.shader_ID);
 
-	LoadTexture(GL_TEXTURE0, texture_kd_ID, "head-texture.jpg");
-	LoadTexture(GL_TEXTURE1, texture_bump_ID, "head-normal.jpg");
+	LoadTexture(GL_TEXTURE1, texture_kd_ID, "head-texture.jpg");
+	LoadTexture(GL_TEXTURE2, texture_bump_ID, "head-normal.jpg");
 
+	FBO_ID = CreateRenderTexture_();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
+	RenderScene();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	cube.LoadMesh("cube.obj");
+	cube.AttachShader("vtest.glsl", "ftest.glsl");
+	cube.BufferObjectData();
+	GetUniformLocations_(cube.shader_ID);
 }
 
 void HeadScene::KeyboardFunction(int key, int action) 
@@ -99,16 +111,114 @@ void HeadScene::InitParameters_()
 	texture_bump_ID = 1;
 }
 
-void HeadScene::GetUniformLocations_()
+void HeadScene::GetUniformLocations_(GLuint shader_ID)
 {
-	loc_model_view = glGetUniformLocation(head.shader_ID, "model_view");
-	loc_projection = glGetUniformLocation(head.shader_ID, "projection");
-	loc_translucency = glGetUniformLocation(head.shader_ID, "translucency");
-	loc_map_kd = glGetUniformLocation(head.shader_ID, "map_kd");
-	loc_map_bump = glGetUniformLocation(head.shader_ID, "map_bump");
-	loc_light_pos = glGetUniformLocation(head.shader_ID, "Light.position");
-	loc_light_color = glGetUniformLocation(head.shader_ID, "Light.color");
-	loc_Kd = glGetUniformLocation(head.shader_ID, "Kd");
-	loc_global_ambient = glGetUniformLocation(head.shader_ID, "global_ambient");
-	loc_mode = glGetUniformLocation(head.shader_ID, "mode");
+	loc_model_view = glGetUniformLocation(shader_ID, "model_view");
+	loc_projection = glGetUniformLocation(shader_ID, "projection");
+	loc_translucency = glGetUniformLocation(shader_ID, "translucency");
+	loc_light_pos = glGetUniformLocation(shader_ID, "Light.position");
+	loc_light_color = glGetUniformLocation(shader_ID, "Light.color");
+	loc_Kd = glGetUniformLocation(shader_ID, "Kd");
+	loc_global_ambient = glGetUniformLocation(shader_ID, "global_ambient");
+	loc_mode = glGetUniformLocation(shader_ID, "mode");
+	
+	loc_map_kd = glGetUniformLocation(shader_ID, "map_kd");
+	glUniform1i(loc_map_kd, 1);
+	loc_map_bump = glGetUniformLocation(shader_ID, "map_bump");
+	glUniform1i(loc_map_bump, 2);
+
+	loc_map_rendered = glGetUniformLocation(shader_ID, "map_rendered");
+	glUniform1i(loc_map_rendered, 0);
+}
+
+void HeadScene::InitFBO_()
+{
+	//create the shadow map texture
+	GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
+	int smWidth = 1024;
+	int smHeight = 1024;
+	GLuint depthTex;
+	glGenTextures(1, &depthTex);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, smWidth, smHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+	//assign the shadow map to texture channel 2
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+
+	//create and set up the FBO
+	GLuint shadowFBO;
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+
+	GLenum drawBuffers[] = { GL_NONE };
+	glDrawBuffers(1, drawBuffers);
+
+	//revert to the default framebuffer for now
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+GLuint HeadScene::CreateRenderTexture_()
+{
+	//create FBO
+	GLuint FBOName;
+	glGenFramebuffers(1, &FBOName);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBOName);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glGenTextures(1, &texture_rendered_ID);
+	glBindTexture(GL_TEXTURE_2D, texture_rendered_ID);
+
+	//assign the shadow map to texture channel2
+	//glActiveTexture(GL_TEXTURE2);
+	//glBindTexture(GL_TEXTURE_2D, texture_rendered_ID);
+
+	//bind to shader
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glGenRenderbuffers(1, &depth_buffer_ID);
+	glBindRenderbuffer(GL_RENDERBUFFER, depth_buffer_ID);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 600);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer_ID);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture_rendered_ID, 0);
+
+	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+	glDrawBuffers(1, DrawBuffers);
+	//glDrawBuffer(GL_NONE);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "FALSE in creating rendered texture!!" << std::endl;
+
+	return FBOName;
+}
+
+void HeadScene::PrintLoc_() 
+{
+	std::cout <<"Start to print location ID" << std::endl;
+	std::cout << loc_model_view << std::endl;
+	std::cout << loc_projection << std::endl;
+	std::cout << loc_translucency<< std::endl;
+	std::cout << loc_light_pos<< std::endl;
+	std::cout << loc_light_color<< std::endl;
+	std::cout << loc_Kd<< std::endl;
+	std::cout << loc_global_ambient<< std::endl;
+	std::cout << loc_mode<< std::endl;
+	std::cout << loc_map_kd<< std::endl;
+	std::cout << loc_map_bump<< std::endl;
+	std::cout << loc_map_rendered<< std::endl;
+	std::cout << "End of printing location ID" << std::endl;
+
 }
