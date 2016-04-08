@@ -32,6 +32,7 @@ public:
 	void Clear();
 	int face_number;
 	GLuint shader_ID;
+	GLuint vao_handles;
 
 protected:
 	void ComputeVnormal();

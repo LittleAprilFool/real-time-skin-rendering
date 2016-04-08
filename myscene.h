@@ -23,7 +23,8 @@ public:
 	vec3 Kd;
 
 private:
-	GLuint loc_model_view;
+	GLuint loc_model;
+	GLuint loc_view;
 	GLuint loc_projection;
 	GLuint loc_translucency;
 	GLuint loc_light_pos;
@@ -34,15 +35,27 @@ private:
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
 	GLuint loc_map_rendered;
+	GLuint loc_depthMVP;
 	GLuint texture_kd_ID;
 	GLuint texture_bump_ID;
 	GLuint texture_rendered_ID;
+	GLuint texture_depth_ID;
 	GLuint depth_buffer_ID;
 	void InitParameters_();
+	void InitGLFunc_();
+	void DrawArray_(int face_number);
+	void RenderScene_(int face_number);
 	void GetUniformLocations_(GLuint shader_ID);
 	void InitFBO_();
+	void TransferDataToShader_();
 	GLuint FBO_ID;
 	GLuint CreateRenderTexture_();
+	GLuint CreateRenderTextureForShadow_();
 	void PrintLoc_();
+	void PassDepthMVP();
+	mat4 projection_matrix;
+	mat4 model_matrix;
+	mat4 view_matrix;
+	void UpdateModelMatrix_();
 };
 

@@ -410,7 +410,6 @@ void Object::BufferObjectData() {
 	glBufferData(GL_ARRAY_BUFFER, data_sum * sizeof(GLfloat), tangent_data, GL_STATIC_DRAW);
 
 	//generate arrays
-	GLuint vao_handles;
 	glGenVertexArrays(1, &vao_handles);
 	glBindVertexArray(vao_handles);
 

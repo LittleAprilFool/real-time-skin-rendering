@@ -13,27 +13,35 @@ HeadScene::~HeadScene()
 {
 }
 
+void HeadScene::DrawArray_(int face_number)
+{
+	if (display_mode == 1) glDrawArrays(GL_QUADS, 0, face_number * 4);
+	if (display_mode == 2) glDrawArrays(GL_POINTS, 0, face_number * 4);
+	if (display_mode == 3) glDrawArrays(GL_LINES, 0, face_number * 4);
+}
+
 void HeadScene::RenderScene() 
 {
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	vec3 eye(1.0, 0.0, 0.0);
-	vec3 at(0.0, 0.0, 0.0);
-	vec3 up(0.0, 1.0, 0.0);
-	mat4 mv = lookAt(eye, at, up);
-	mv = scale(mv, vec3(scale_factor));
-	mv = rotate<float>(mv, rotate_factor.y, vec3(0, 1, 0));
-	mv = rotate<float>(mv, rotate_factor.x, vec3(1, 0, 0));
-	glUniformMatrix4fv(loc_model_view, 1, GL_TRUE, &mv[0][0]);
+	UpdateModelMatrix_();
+	TransferDataToShader_();
+	DrawArray_(cube.face_number);
+}
 
-	GLfloat  iLeft = -0.2;
-	GLfloat iRight = 0.2;
-	GLfloat iBottom = -0.2;
-	GLfloat iTop = 0.2;
-	GLfloat  zNear = -5;
-	GLfloat zFar = 1;
-	mat4  p = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
-	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &p[0][0]);
+void HeadScene::RenderScene_(int face_number) 
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	UpdateModelMatrix_();
+	TransferDataToShader_();
+	DrawArray_(face_number);
+}
+
+
+void HeadScene::TransferDataToShader_()
+{
+	glUniformMatrix4fv(loc_model, 1, GL_TRUE, &model_matrix[0][0]);
+	glUniformMatrix4fv(loc_view, 1, GL_TRUE, &view_matrix[0][0]);
+	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &projection_matrix[0][0]);
 
 	glUniform1f(loc_translucency, translucency_value);
 	glUniform1f(loc_mode, shading_mode);
@@ -42,15 +50,11 @@ void HeadScene::RenderScene()
 	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);
 	glUniform3f(loc_Kd, Kd.x, Kd.y, Kd.z);
 	glUniform3f(loc_global_ambient, global_ambient.x, global_ambient.y, global_ambient.z);
-
-	if (display_mode == 1) glDrawArrays(GL_QUADS, 0, head.face_number * 4);
-	if (display_mode == 2) glDrawArrays(GL_POINTS, 0, head.face_number * 4);
-	if (display_mode == 3) glDrawArrays(GL_LINES, 0, head.face_number * 4);
-
 }
 
 void HeadScene::InitScene() 
 {
+	InitGLFunc_();
 	InitParameters_();
 	
 	head.LoadMesh("head.obj");
@@ -61,10 +65,10 @@ void HeadScene::InitScene()
 	LoadTexture(GL_TEXTURE1, texture_kd_ID, "head-texture.jpg");
 	LoadTexture(GL_TEXTURE2, texture_bump_ID, "head-normal.jpg");
 
-	FBO_ID = CreateRenderTexture_();
+	FBO_ID = CreateRenderTextureForShadow_();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
-	RenderScene();
+	RenderScene_(head.face_number);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	cube.LoadMesh("cube.obj");
@@ -96,6 +100,26 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
 
+void HeadScene::InitGLFunc_()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	glEnable(GL_MULTISAMPLE);
+
+	glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST); // Make round points, not square points  
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+}
+
 void HeadScene::InitParameters_()
 {
 	scale_factor = 1;
@@ -109,12 +133,36 @@ void HeadScene::InitParameters_()
 	Kd = vec3(0.5, 0.5, 0.5);
 	texture_kd_ID = 0;
 	texture_bump_ID = 1;
+
+	GLfloat  iLeft = -0.2;
+	GLfloat iRight = 0.2;
+	GLfloat iBottom = -0.2;
+	GLfloat iTop = 0.2;
+	GLfloat  zNear = -0.5;
+	GLfloat zFar = 1;
+	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
+
+	vec3 eye(1.0, 0.0, 0.0);
+	vec3 at(0.0, 0.0, 0.0);
+	vec3 up(0.0, 1.0, 0.0);
+	view_matrix = lookAt(eye, at, up);
+
+	model_matrix = mat4(1.0);
+}
+
+void HeadScene::UpdateModelMatrix_() 
+{
+	model_matrix = mat4(1.0);
+	model_matrix = scale(model_matrix, vec3(scale_factor));
+	model_matrix = rotate<float>(model_matrix, rotate_factor.y, vec3(0, 1, 0));
+	model_matrix = rotate<float>(model_matrix, rotate_factor.x, vec3(1, 0, 0));
 }
 
 void HeadScene::GetUniformLocations_(GLuint shader_ID)
 {
-	loc_model_view = glGetUniformLocation(shader_ID, "model_view");
-	loc_projection = glGetUniformLocation(shader_ID, "projection");
+	loc_model = glGetUniformLocation(shader_ID, "model_matrix");
+	loc_view = glGetUniformLocation(shader_ID, "view_matrix");
+	loc_projection = glGetUniformLocation(shader_ID, "projection_matrix");
 	loc_translucency = glGetUniformLocation(shader_ID, "translucency");
 	loc_light_pos = glGetUniformLocation(shader_ID, "Light.position");
 	loc_light_color = glGetUniformLocation(shader_ID, "Light.color");
@@ -126,7 +174,6 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	glUniform1i(loc_map_kd, 1);
 	loc_map_bump = glGetUniformLocation(shader_ID, "map_bump");
 	glUniform1i(loc_map_bump, 2);
-
 	loc_map_rendered = glGetUniformLocation(shader_ID, "map_rendered");
 	glUniform1i(loc_map_rendered, 0);
 }
@@ -178,10 +225,6 @@ GLuint HeadScene::CreateRenderTexture_()
 	glGenTextures(1, &texture_rendered_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_rendered_ID);
 
-	//assign the shadow map to texture channel2
-	//glActiveTexture(GL_TEXTURE2);
-	//glBindTexture(GL_TEXTURE_2D, texture_rendered_ID);
-
 	//bind to shader
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -205,10 +248,50 @@ GLuint HeadScene::CreateRenderTexture_()
 	return FBOName;
 }
 
+GLuint HeadScene::CreateRenderTextureForShadow_()
+{
+	//create FBO
+	GLuint FBOName;
+	glGenFramebuffers(1, &FBOName);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBOName);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glGenTextures(1, &texture_depth_ID);
+	glBindTexture(GL_TEXTURE_2D, texture_depth_ID);
+
+	//bind to shader
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 800, 600, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture_depth_ID, 0);
+
+	glDrawBuffer(GL_NONE);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "FALSE in creating rendered texture!!" << std::endl;
+
+	return FBOName;
+}
+
+void HeadScene::PassDepthMVP()
+{
+	loc_depthMVP = glGetUniformLocation(cube.shader_ID, "depthMVP");
+	mat4 depth_projection_matrix = projection_matrix;
+	mat4 depth_view_matrix = lookAt(light_position, vec3(0, 0, 0), vec3(0, 1, 0));
+	mat4 depth_model_matrix = model_matrix;
+
+	mat4 depth_MVP_matrix = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
+	glUniformMatrix4fv(loc_depthMVP, 1, GL_FALSE, &depth_MVP_matrix[0][0]);
+}
+
 void HeadScene::PrintLoc_() 
 {
 	std::cout <<"Start to print location ID" << std::endl;
-	std::cout << loc_model_view << std::endl;
+	std::cout << loc_model<< std::endl;
+	std::cout << loc_view << std::endl;
 	std::cout << loc_projection << std::endl;
 	std::cout << loc_translucency<< std::endl;
 	std::cout << loc_light_pos<< std::endl;
