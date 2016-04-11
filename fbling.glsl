@@ -20,6 +20,11 @@ uniform vec3 global_ambient;
 
 uniform sampler2D map_kd;
 uniform sampler2D map_bump;
+uniform sampler2D map_rendered;
+
+uniform mat4 depth_model_matrix;
+uniform mat4 depth_view_matrix;
+uniform mat4 depth_projection_matrix;
 
 uniform float mode;
 
@@ -51,28 +56,46 @@ vec3 wrapLight(vec3 L, vec3 N)
 
 void main()
 {
-  vec4 kdColor = texture2D(map_kd, texcoord);
-  vec4 norm = 2 * texture2D(map_bump, texcoord) - 1.0;
+	vec4 kdColor = texture2D(map_kd, texcoord);
+	vec4 norm = 2 * texture2D(map_bump, texcoord) - 1.0;
   
-  vec3 N = normalize(normal.xyz);
+	vec3 N = normalize(normal.xyz);
   
-  vec4 lColor;
+	vec4 lColor;
 
-  //compute the binormal
-  vec3 B = normalize(cross(N, T.xyz)) * T.w;
+	//compute the binormal
+	vec3 B = normalize(cross(N, T.xyz)) * T.w;
 
-  mat3 TBN = mat3(
-	T.x, B.x, N.x,
-	T.y, B.y, N.y,
-	T.z, B.z, N.z);
+	mat3 TBN = mat3(
+		T.x, B.x, N.x,
+		T.y, B.y, N.y,
+		T.z, B.z, N.z
+	);
 
-  //compute light
-  vec3 light = normalize(position.xyz - Light.position);
+	//compute light
+	vec3 light = normalize(position.xyz - Light.position);
  
-  light = normalize(TBN * light.xyz);
+	light = normalize(TBN * light.xyz);
 
-  if (mode == 1) fColor.xyz = phoneModel(light, norm.xyz) * 0.3 + kdColor.xyz * 0.7;
-  if (mode == 2) fColor.xyz = wrapLight(light, norm.xyz) * 0.3 + kdColor.xyz * 0.7;
-  if (mode == 3) fColor.xyz = wrapLight(light, norm.xyz);
-  fColor.a = 1.0;
+	//if (mode == 1) fColor.xyz = phoneModel(light, norm.xyz) * 0.3 + kdColor.xyz * 0.7;
+	//if (mode == 2) fColor.xyz = wrapLight(light, norm.xyz) * 0.3 + kdColor.xyz * 0.7;
+	//if (mode == 3) fColor.xyz = wrapLight(light, norm.xyz);
+	fColor.xyz = phoneModel(light, norm.xyz);
+	fColor.a = 1.0;
+
+	mat4 biasMatrix = mat4(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+	);
+
+	mat4 depthMVP = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
+	
+	mat4 depthBiasMVP = biasMatrix*depthMVP;
+
+	vec4 shadowcoord = depthBiasMVP * position;
+	float visibility = 1;
+	if( texture2D(map_rendered, shadowcoord.xy).z < shadowcoord.z) visibility = 0.5;
+	if(visibility == 0.5) fColor = vec4(1,0,0,1);
 }

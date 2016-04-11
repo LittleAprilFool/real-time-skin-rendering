@@ -90,6 +90,11 @@ void Object::AttachShader(const char* vertex_shader_filename, const char* fragme
 	shader_ID = shader->InitShader(vertex_shader_filename, fragment_shader_filename);
 }
 
+void Object::AttachShadowShader(const char* vertex_shader_filename, const char* fragment_shader_filename) {
+	shadow_shader = new ShaderProgram;
+	shadow_shader_ID = shadow_shader->InitShader(vertex_shader_filename, fragment_shader_filename);
+}
+
 void Object::ComputeVnormal() {
 	std::vector<std::vector<vec3> > vvn;
 	for (auto i = vertice.cbegin(); i!= vertice.cend(); i++)

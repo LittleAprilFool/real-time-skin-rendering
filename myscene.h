@@ -36,6 +36,10 @@ private:
 	GLuint loc_map_bump;
 	GLuint loc_map_rendered;
 	GLuint loc_depthMVP;
+	GLuint loc_depth_model_matrix;
+	GLuint loc_depth_view_matrix;
+	GLuint loc_depth_projection_matrix;
+	GLuint loc_mvp_matrix;
 	GLuint texture_kd_ID;
 	GLuint texture_bump_ID;
 	GLuint texture_rendered_ID;
@@ -52,10 +56,18 @@ private:
 	GLuint CreateRenderTexture_();
 	GLuint CreateRenderTextureForShadow_();
 	void PrintLoc_();
-	void PassDepthMVP();
+	void PassDepthMVP(int shader_ID);
 	mat4 projection_matrix;
 	mat4 model_matrix;
 	mat4 view_matrix;
+	mat4 mvp_matrix;
+	mat4 depth_projection_matrix;
+	mat4 depth_view_matrix;
+	mat4 depth_model_matrix;
+	mat4 depth_mvp_matrix;
+	int face_number;
 	void UpdateModelMatrix_();
+	void BindFBOForCube_();
+	void BindFBOForHead_();
 };
 
