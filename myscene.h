@@ -28,9 +28,13 @@ private:
 	GLuint loc_projection;
 	GLuint loc_translucency;
 	GLuint loc_light_pos;
-	GLuint loc_light_color;
-	GLuint loc_Kd;
-	GLuint loc_global_ambient;
+	GLuint loc_light_la;
+	GLuint loc_light_ld;
+	GLuint loc_light_ls;
+	GLuint loc_material_ka;
+	GLuint loc_material_kd;
+	GLuint loc_material_ks;
+	GLuint loc_material_shininess;
 	GLuint loc_mode;
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
@@ -48,9 +52,7 @@ private:
 	void InitParameters_();
 	void InitGLFunc_();
 	void DrawArray_(int face_number);
-	void RenderScene_(int face_number);
 	void GetUniformLocations_(GLuint shader_ID);
-	void InitFBO_();
 	void TransferDataToShader_();
 	GLuint FBO_ID;
 	GLuint CreateRenderTexture_();
@@ -65,9 +67,17 @@ private:
 	mat4 depth_view_matrix;
 	mat4 depth_model_matrix;
 	mat4 depth_mvp_matrix;
+	vec3 light_la;
+	vec3 light_ld;
+	vec3 light_ls;
+	vec3 material_la;
+	vec3 material_ld;
+	vec3 material_ls;
+	float material_shininess;
 	int face_number;
 	void UpdateModelMatrix_();
 	void BindFBOForCube_();
 	void BindFBOForHead_();
+	void DrawShadowMap_();
 };
 

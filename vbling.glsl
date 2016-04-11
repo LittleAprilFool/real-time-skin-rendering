@@ -1,14 +1,14 @@
 #version 400
 
-in  vec4 vPosition;
-in vec2 vTexcoord;
-in vec4 vNormal;
-in vec4 vT;
+in vec4 vposition;
+in vec2 vtexcoord;
+in vec4 vnormal;
+in vec4 vtangent;
 
-out vec2 texcoord;
 out vec4 position;
+out vec2 texcoord;
 out vec4 normal;
-out vec4 T;
+out vec4 tangent;
 
 uniform mat4 model_matrix;
 uniform mat4 projection_matrix;
@@ -16,11 +16,11 @@ uniform mat4 view_matrix;
 
 void main()
 {
-  //compute position
-  gl_Position = projection_matrix * view_matrix * model_matrix * vPosition;
+	position = vposition;
+	texcoord = vtexcoord;
+	normal = vnormal;
+	tangent = vtangent;
 
-  texcoord = vTexcoord;
-  position = vPosition;
-  normal = vNormal;
-  T = vT;
+	//compute position
+	gl_Position = projection_matrix * view_matrix * model_matrix * position;
 }

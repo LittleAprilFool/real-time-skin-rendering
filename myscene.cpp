@@ -25,6 +25,12 @@ void HeadScene::RenderScene()
 	UpdateModelMatrix_();
 	//draw shadow map first
 	
+	DrawShadowMap_();
+	BindFBOForHead_();
+}
+
+void HeadScene::DrawShadowMap_() 
+{
 	//bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -39,7 +45,6 @@ void HeadScene::RenderScene()
 	PassDepthMVP(head.shadow_shader_ID);
 	//draw array
 	DrawArray_(head.face_number);
-	BindFBOForCube_();
 }
 
 void HeadScene::BindFBOForCube_() 
@@ -80,15 +85,6 @@ void HeadScene::BindFBOForHead_()
 	DrawArray_(head.face_number);
 }
 
-void HeadScene::RenderScene_(int face_number) 
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	UpdateModelMatrix_();
-	TransferDataToShader_();
-	DrawArray_(face_number);
-}
-
-
 void HeadScene::TransferDataToShader_()
 {
 	glUniformMatrix4fv(loc_model, 1, GL_TRUE, &model_matrix[0][0]);
@@ -100,9 +96,13 @@ void HeadScene::TransferDataToShader_()
 	glUniform1f(loc_mode, shading_mode);
 
 	glUniform3f(loc_light_pos, light_position.x, light_position.y, light_position.z);
-	glUniform3f(loc_light_color, light_color.x, light_color.y, light_color.z);
-	glUniform3f(loc_Kd, Kd.x, Kd.y, Kd.z);
-	glUniform3f(loc_global_ambient, global_ambient.x, global_ambient.y, global_ambient.z);
+	glUniform3f(loc_light_la, light_la.x, light_la.y, light_la.z);
+	glUniform3f(loc_light_ld, light_ld.x, light_ld.y, light_ld.z);
+	glUniform3f(loc_light_ls, light_ls.x, light_ls.y, light_ls.z);
+	glUniform3f(loc_material_ka, material_la.x, material_la.y, material_la.z);
+	glUniform3f(loc_material_kd, material_ld.x, material_ld.y, material_ld.z);
+	glUniform3f(loc_material_ks, material_ls.x, material_ls.y, material_ls.z);
+	glUniform1f(loc_material_shininess, material_shininess);
 }
 
 void HeadScene::InitScene() 
@@ -147,8 +147,6 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) shading_mode = 3;
 	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
-
-	std::cout << "light:" <<light_position.x<<" "<<light_position.y<<" "<<light_position.z<<std::endl;
 }
 
 void HeadScene::InitGLFunc_()
@@ -178,10 +176,6 @@ void HeadScene::InitParameters_()
 	translucency_value = 0.5;
 	shading_mode = 1;
 	display_mode = 1;
-	light_position = vec3(0, 0, 2);
-	light_color = vec3(1, 1, 1);
-	global_ambient = vec3(0.5, 0.5, 0.5);
-	Kd = vec3(0.5, 0.5, 0.5);
 	texture_kd_ID = 0;
 	texture_bump_ID = 1;
 
@@ -201,6 +195,16 @@ void HeadScene::InitParameters_()
 	model_matrix = mat4(1.0);
 
 	mvp_matrix = projection_matrix * view_matrix * model_matrix;
+	
+	light_position = vec3(0, 0, 2);
+	light_la = vec3(0.5, 0.5, 0.5);
+	light_ld = vec3(0.5, 0.5, 0.5);
+	light_ls = vec3(1, 1, 1);
+
+	material_la = vec3(0.5, 0.5, 0.5);
+	material_ld = vec3(1, 1, 1);
+	material_ls = vec3(1, 1, 1);
+	material_shininess = 0.3;
 }
 
 void HeadScene::UpdateModelMatrix_() 
@@ -219,11 +223,15 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_mvp_matrix = glGetUniformLocation(shader_ID, "mvp_matrix");
 	loc_translucency = glGetUniformLocation(shader_ID, "translucency");
 	loc_light_pos = glGetUniformLocation(shader_ID, "Light.position");
-	loc_light_color = glGetUniformLocation(shader_ID, "Light.color");
-	loc_Kd = glGetUniformLocation(shader_ID, "Kd");
-	loc_global_ambient = glGetUniformLocation(shader_ID, "global_ambient");
+	loc_light_la = glGetUniformLocation(shader_ID, "Light.la");
+	loc_light_ld = glGetUniformLocation(shader_ID, "Light.ld");
+	loc_light_ls = glGetUniformLocation(shader_ID, "Light.ls");
+	loc_material_ka = glGetUniformLocation(shader_ID, "Material.ka");
+	loc_material_kd = glGetUniformLocation(shader_ID, "Material.kd");
+	loc_material_ks = glGetUniformLocation(shader_ID, "Material.ks");
+	loc_material_shininess = glGetUniformLocation(shader_ID, "Material.shininess");
 	loc_mode = glGetUniformLocation(shader_ID, "mode");
-	
+
 	loc_map_kd = glGetUniformLocation(shader_ID, "map_kd");
 	glUniform1i(loc_map_kd, 1);
 	loc_map_bump = glGetUniformLocation(shader_ID, "map_bump");
@@ -232,41 +240,7 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	glUniform1i(loc_map_rendered, 0);
 }
 
-void HeadScene::InitFBO_()
-{
-	//create the shadow map texture
-	GLfloat border[] = { 1.0f, 0.0f, 0.0f, 0.0f };
-	int smWidth = 1024;
-	int smHeight = 1024;
-	GLuint depthTex;
-	glGenTextures(1, &depthTex);
-	glBindTexture(GL_TEXTURE_2D, depthTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, smWidth, smHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-
-	//assign the shadow map to texture channel 2
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, depthTex);
-
-	//create and set up the FBO
-	GLuint shadowFBO;
-	glGenFramebuffers(1, &shadowFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
-
-	GLenum drawBuffers[] = { GL_NONE };
-	glDrawBuffers(1, drawBuffers);
-
-	//revert to the default framebuffer for now
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
+//this function is for creating normal color mode for rendering screen to texture
 GLuint HeadScene::CreateRenderTexture_()
 {
 	//create FBO
@@ -302,6 +276,8 @@ GLuint HeadScene::CreateRenderTexture_()
 	return FBOName;
 }
 
+
+//this function is for creating depth color mode for rendering screen to texture
 GLuint HeadScene::CreateRenderTextureForShadow_()
 {
 	//create FBO
@@ -357,9 +333,6 @@ void HeadScene::PrintLoc_()
 	std::cout << loc_projection << std::endl;
 	std::cout << loc_translucency<< std::endl;
 	std::cout << loc_light_pos<< std::endl;
-	std::cout << loc_light_color<< std::endl;
-	std::cout << loc_Kd<< std::endl;
-	std::cout << loc_global_ambient<< std::endl;
 	std::cout << loc_mode<< std::endl;
 	std::cout << loc_map_kd<< std::endl;
 	std::cout << loc_map_bump<< std::endl;
