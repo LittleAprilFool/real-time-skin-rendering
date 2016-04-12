@@ -16,11 +16,11 @@ uniform mat4 view_matrix;
 
 void main()
 {
-	position = vposition;
+	position = model_matrix * vposition;
 	texcoord = vtexcoord;
-	normal = vnormal;
-	tangent = vtangent;
+	normal = model_matrix * vnormal;
+	tangent = model_matrix * vtangent;
 
 	//compute position
-	gl_Position = projection_matrix * view_matrix * model_matrix * position;
+	gl_Position = projection_matrix * view_matrix * model_matrix * vposition;
 }

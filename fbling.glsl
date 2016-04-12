@@ -33,6 +33,7 @@ uniform mat4 depth_projection_matrix;
 uniform sampler2D map_kd;
 uniform sampler2D map_bump;
 uniform sampler2D map_rendered;
+uniform sampler2D map_scattered;
 
 vec3 GetTBNTransformedLight()
 {
@@ -40,12 +41,23 @@ vec3 GetTBNTransformedLight()
 	vec3 N = normalize(normal.xyz);
 	vec3 B = normalize(cross(N, T.xyz)) * T.w;
 	mat3 TBN = mat3(T.x, B.x, N.x, T.y, B.y, N.y, T.z, B.z, N.z);
-	vec3 light = normalize(position.xyz - Light.position.xyz);
+	vec3 light = normalize(Light.position.xyz - position.xyz);
 	light = normalize(TBN * light);
 	return light;
 }
 
-float GetVisibility()
+float GetVisibility(vec3 light, vec3 norm, vec4 shadowcoord)
+{
+	float visibility = 1;
+	float bias = 0.005 * tan(acos(dot(light, norm)));
+	bias = clamp(bias, 0.0f, 0.01f);
+	float factor = (shadowcoord.z-bias) / texture(map_rendered, shadowcoord.xy).z;
+
+	if( factor > 1) visibility = 1 / factor;
+	return visibility;
+}
+
+vec4 GetShadowCoord()
 {
 	mat4 biasMatrix = mat4(
 		0.5, 0.0, 0.0, 0.0,
@@ -57,11 +69,17 @@ float GetVisibility()
 	mat4 depthMVP = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
 	
 	mat4 depthBiasMVP = biasMatrix*depthMVP;
-
 	vec4 shadowcoord = depthBiasMVP * position;
-	float visibility = 0.4;
-	if( texture2D(map_rendered, shadowcoord.xy).z < shadowcoord.z) visibility = 0.2;
-	return visibility;
+	return shadowcoord;
+}
+
+float GetDepth(vec3 light, vec3 norm, vec4 shadowcoord)
+{
+	float visibility = 1;
+	float bias = 0.005 * tan(acos(dot(light, norm)));
+	bias = clamp(bias, 0.0f, 0.01f);
+	float depth = abs((shadowcoord.z-bias) - texture(map_rendered, shadowcoord.xy).z);
+	return depth;
 }
 
 vec3 ComputeDiffuseColor(vec3 kd, vec3 light, vec3 norm)
@@ -96,15 +114,25 @@ vec3 ComputeSpecularColor(vec3 kd, vec3 light, vec3 norm)
 	return Light.ls * Material.ks * factor;
 }
 
+vec3 ScatteredTestColor(float depth)
+{
+	float depth_u = depth / 20;
+	return texture(map_scattered, vec2(depth_u, 0.5)).xyz;
+}
+
 void main()
 {
-	vec3 kd = texture2D(map_kd, texcoord).xyz;
+	vec3 kd = texture(map_kd, texcoord).xyz;
 
 	vec3 light = GetTBNTransformedLight();
 
-	float visibility = GetVisibility();
+	vec3 norm = 2 * texture(map_bump, texcoord).xyz - vec3(1.0);
 
-	vec3 norm = 2 * texture2D(map_bump, texcoord).xyz - vec3(1.0);
+	vec4 shadowcoord = GetShadowCoord();
+
+	float depth = GetDepth(light, norm, shadowcoord);
+
+	float visibility = GetVisibility(light, norm, shadowcoord);
 
 	vec3 diffuse = ComputeDiffuseColor(kd, light, norm);
 
@@ -116,9 +144,10 @@ void main()
 
 	vec3 spec = ComputeSpecularColor(kd, light, norm);
 
-	visibility = 0.4;
 	vec3 light_intensity;
-	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
+//	light_intensity = diffuse * visibility + ambient * visibility;
+	light_intensity = ScatteredTestColor(depth);
+//	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
 //	if (mode == 2) light_intensity = wrapLight(light, norm.xyz) * visibility + kdColor.xyz * 0.6;
 //	if (mode == 3) light_intensity = wrapLight(light, norm.xyz);
 	fColor = vec4(light_intensity, 1);

@@ -39,6 +39,7 @@ private:
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
 	GLuint loc_map_rendered;
+	GLuint loc_map_scattered;
 	GLuint loc_depthMVP;
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -48,6 +49,7 @@ private:
 	GLuint texture_bump_ID;
 	GLuint texture_rendered_ID;
 	GLuint texture_depth_ID;
+	GLuint texture_scattered_ID;
 	GLuint depth_buffer_ID;
 	void InitParameters_();
 	void InitGLFunc_();

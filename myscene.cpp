@@ -120,6 +120,8 @@ void HeadScene::InitScene()
 
 	LoadTexture(GL_TEXTURE1, texture_kd_ID, "head-texture.jpg");
 	LoadTexture(GL_TEXTURE2, texture_bump_ID, "head-normal.jpg");
+	LoadTexture(GL_TEXTURE3, texture_scattered_ID, "head-scattered.jpg");
+
 	cube.LoadMesh("cube.obj");
 	cube.AttachShader("vtest.glsl", "ftest.glsl");
 	cube.BufferObjectData();
@@ -187,7 +189,7 @@ void HeadScene::InitParameters_()
 	GLfloat zFar = 1;
 	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 
-	vec3 eye(1.0, 0.0, 0.0);
+	vec3 eye(2.0, 0.0, 0.0);
 	vec3 at(0.0, 0.0, 0.0);
 	vec3 up(0.0, 1.0, 0.0);
 	view_matrix = lookAt(eye, at, up);
@@ -238,6 +240,8 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	glUniform1i(loc_map_bump, 2);
 	loc_map_rendered = glGetUniformLocation(shader_ID, "map_rendered");
 	glUniform1i(loc_map_rendered, 0);
+	loc_map_scattered = glGetUniformLocation(shader_ID, "map_scattered");
+	glUniform1i(loc_map_scattered, 3);
 }
 
 //this function is for creating normal color mode for rendering screen to texture
