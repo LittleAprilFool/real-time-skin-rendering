@@ -75,6 +75,9 @@ private:
 	vec3 material_la;
 	vec3 material_ld;
 	vec3 material_ls;
+	vec3 eye;
+	vec3 at;
+	vec3 up;
 	float material_shininess;
 	int face_number;
 	void UpdateModelMatrix_();

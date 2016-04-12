@@ -146,8 +146,9 @@ void main()
 
 	vec3 light_intensity;
 //	light_intensity = diffuse * visibility + ambient * visibility;
-	light_intensity = ScatteredTestColor(depth);
-//	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
+//	light_intensity = ScatteredTestColor(depth);
+	visibility = 0.2;
+	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
 //	if (mode == 2) light_intensity = wrapLight(light, norm.xyz) * visibility + kdColor.xyz * 0.6;
 //	if (mode == 3) light_intensity = wrapLight(light, norm.xyz);
 	fColor = vec4(light_intensity, 1);

@@ -180,6 +180,7 @@ void HeadScene::InitParameters_()
 	display_mode = 1;
 	texture_kd_ID = 0;
 	texture_bump_ID = 1;
+	texture_scattered_ID = 2;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;
@@ -189,9 +190,9 @@ void HeadScene::InitParameters_()
 	GLfloat zFar = 1;
 	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 
-	vec3 eye(2.0, 0.0, 0.0);
-	vec3 at(0.0, 0.0, 0.0);
-	vec3 up(0.0, 1.0, 0.0);
+	eye = vec3(0.0, 0.0, 2.0);
+	at = vec3(0.0, 0.0, 0.0);
+	up = vec3(0.0, 1.0, 0.0);
 	view_matrix = lookAt(eye, at, up);
 
 	model_matrix = mat4(1.0);
@@ -318,7 +319,7 @@ void HeadScene::PassDepthMVP(int shader_ID)
 	loc_depth_projection_matrix = glGetUniformLocation(shader_ID, "depth_projection_matrix");
 	
 	depth_projection_matrix = projection_matrix;
-	depth_view_matrix = lookAt(light_position, vec3(0, 0, 0), vec3(0, 1, 0));
+	depth_view_matrix = lookAt(light_position, at, up);
 	depth_model_matrix = model_matrix;
 
 	depth_mvp_matrix = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
