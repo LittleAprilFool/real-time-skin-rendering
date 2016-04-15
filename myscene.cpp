@@ -148,6 +148,9 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_4 && action == GLFW_PRESS) shading_mode = 1;
 	if (key == GLFW_KEY_KP_5 && action == GLFW_PRESS) shading_mode = 2;
 	if (key == GLFW_KEY_KP_6 && action == GLFW_PRESS) shading_mode = 3;
+	if (key == GLFW_KEY_KP_7 && action == GLFW_PRESS) shading_mode = 4;
+	if (key == GLFW_KEY_KP_8 && action == GLFW_PRESS) shading_mode = 5;
+	if (key == GLFW_KEY_KP_9 && action == GLFW_PRESS) shading_mode = 6;
 	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
@@ -191,13 +194,13 @@ void HeadScene::InitParameters_()
 	GLfloat zFar = 1;
 	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 
-	eye = vec3(1.0, 0.0, 0.0);
+	eye = vec3(0.0, 0.0, 1.0);
 	at = vec3(0.0, 0.0, 0.0);
 	up = vec3(0.0, 1.0, 0.0);
 	view_matrix = lookAt(eye, at, up);
 	model_matrix = mat4(1.0);
 	
-	light_position = vec3(-1, 0, 0);
+	light_position = vec3(0, 0, -1);
 	light_la = vec3(0.5, 0.5, 0.5);
 	light_ld = vec3(0.3, 0.3, 0.3);
 	light_ls = vec3(0.5, 0.5, 0.5);
