@@ -90,7 +90,6 @@ void HeadScene::TransferDataToShader_()
 	glUniformMatrix4fv(loc_model, 1, GL_TRUE, &model_matrix[0][0]);
 	glUniformMatrix4fv(loc_view, 1, GL_TRUE, &view_matrix[0][0]);
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &projection_matrix[0][0]);
-	glUniformMatrix4fv(loc_mvp_matrix, 1, GL_TRUE, &mvp_matrix[0][0]);
 
 	glUniform1f(loc_translucency, translucency_value);
 	glUniform1f(loc_mode, shading_mode);
@@ -99,9 +98,9 @@ void HeadScene::TransferDataToShader_()
 	glUniform3f(loc_light_la, light_la.x, light_la.y, light_la.z);
 	glUniform3f(loc_light_ld, light_ld.x, light_ld.y, light_ld.z);
 	glUniform3f(loc_light_ls, light_ls.x, light_ls.y, light_ls.z);
-	glUniform3f(loc_material_ka, material_la.x, material_la.y, material_la.z);
-	glUniform3f(loc_material_kd, material_ld.x, material_ld.y, material_ld.z);
-	glUniform3f(loc_material_ks, material_ls.x, material_ls.y, material_ls.z);
+	glUniform3f(loc_material_ka, material_ka.x, material_ka.y, material_ka.z);
+	glUniform3f(loc_material_kd, material_kd.x, material_kd.y, material_kd.z);
+	glUniform3f(loc_material_ks, material_ks.x, material_ks.y, material_ks.z);
 	glUniform1f(loc_material_shininess, material_shininess);
 }
 
@@ -113,7 +112,7 @@ void HeadScene::InitScene()
 	head.LoadMesh("head.obj");
 	head.AttachShadowShader("vshadow.glsl", "fshadow.glsl");
 	head.BufferObjectData();
-	head.AttachShader("vbling2.glsl", "fbling2.glsl");
+	head.AttachShader("vbling.glsl", "fbling.glsl");
 
 	FBO_ID = CreateRenderTextureForShadow_();
 
@@ -135,9 +134,8 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_position.x -= 0.2;
 	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_position.z += 0.2;
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_position.z -= 0.1;
-	if (key == GLFW_KEY_Z && action == GLFW_PRESS) eye = vec3(0, 0, 2);
-	if (key == GLFW_KEY_X && action == GLFW_PRESS) eye = vec3(2, 0, 0);
-	if (key == GLFW_KEY_Y && action == GLFW_PRESS) eye = vec3(-2, 0, 0);
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS) eye = vec3(0, 0, 1);
+	if (key == GLFW_KEY_X && action == GLFW_PRESS) eye = vec3(1, 0, 0);
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
@@ -189,37 +187,34 @@ void HeadScene::InitParameters_()
 	GLfloat iRight = 0.2;
 	GLfloat iBottom = -0.2;
 	GLfloat iTop = 0.2;
-	GLfloat  zNear = 0.1;
+	GLfloat  zNear = 0;
 	GLfloat zFar = 1;
 	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 
-	eye = vec3(0.0, 2.0, 0.0);
+	eye = vec3(1.0, 0.0, 0.0);
 	at = vec3(0.0, 0.0, 0.0);
 	up = vec3(0.0, 1.0, 0.0);
-	//view_matrix = lookAt(eye, at, up);
-	view_matrix = lookAt(vec3(1, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
+	view_matrix = lookAt(eye, at, up);
 	model_matrix = mat4(1.0);
-
-	mvp_matrix = projection_matrix * view_matrix * model_matrix;
 	
-	light_position = vec3(3, 0, 0);
+	light_position = vec3(-1, 0, 0);
 	light_la = vec3(0.5, 0.5, 0.5);
-	light_ld = vec3(0.5, 0.5, 0.5);
-	light_ls = vec3(1, 1, 1);
+	light_ld = vec3(0.3, 0.3, 0.3);
+	light_ls = vec3(0.5, 0.5, 0.5);
 
-	material_la = vec3(0.5, 0.5, 0.5);
-	material_ld = vec3(1, 1, 1);
-	material_ls = vec3(1, 1, 1);
+	material_ka = vec3(0.5, 0.5, 0.5);
+	material_kd = vec3(0.5, 0.5, 0.5);
+	material_ks = vec3(0.5, 0.5, 0.5);
 	material_shininess = 0.3;
 }
 
 void HeadScene::UpdateModelMatrix_() 
 {
 	model_matrix = mat4(1.0);
-	//model_matrix = scale(model_matrix, vec3(scale_factor));
+	model_matrix = scale(model_matrix, vec3(scale_factor));
 	model_matrix = rotate<float>(model_matrix, rotate_factor.y, vec3(0, 1, 0));
 	model_matrix = rotate<float>(model_matrix, rotate_factor.x, vec3(1, 0, 0));
-	view_matrix = lookAt(vec3(1,0,0), vec3(0,0,0), vec3(0,1,0));
+	view_matrix = lookAt(eye, at, up);
 }
 
 void HeadScene::GetUniformLocations_(GLuint shader_ID)
@@ -227,7 +222,6 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_model = glGetUniformLocation(shader_ID, "model_matrix");
 	loc_view = glGetUniformLocation(shader_ID, "view_matrix");
 	loc_projection = glGetUniformLocation(shader_ID, "projection_matrix");
-	loc_mvp_matrix = glGetUniformLocation(shader_ID, "mvp_matrix");
 	loc_translucency = glGetUniformLocation(shader_ID, "translucency");
 	loc_light_pos = glGetUniformLocation(shader_ID, "Light.position");
 	loc_light_la = glGetUniformLocation(shader_ID, "Light.la");
@@ -317,7 +311,6 @@ GLuint HeadScene::CreateRenderTextureForShadow_()
 
 void HeadScene::PassDepthMVP(int shader_ID)
 {
-	loc_depthMVP = glGetUniformLocation(shader_ID, "depthMVP");
 	loc_depth_model_matrix = glGetUniformLocation(shader_ID, "depth_model_matrix");
 	loc_depth_view_matrix = glGetUniformLocation(shader_ID, "depth_view_matrix");
 	loc_depth_projection_matrix = glGetUniformLocation(shader_ID, "depth_projection_matrix");
@@ -325,9 +318,6 @@ void HeadScene::PassDepthMVP(int shader_ID)
 	depth_projection_matrix = projection_matrix;
 	depth_view_matrix = lookAt(light_position, at, up);
 	depth_model_matrix = model_matrix;
-
-	depth_mvp_matrix = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
-	glUniformMatrix4fv(loc_depthMVP, 1, GL_TRUE, &depth_mvp_matrix[0][0]);
 
 	glUniformMatrix4fv(loc_depth_model_matrix, 1, GL_TRUE, &depth_model_matrix[0][0]);
 	glUniformMatrix4fv(loc_depth_view_matrix, 1, GL_TRUE, &depth_view_matrix[0][0]);

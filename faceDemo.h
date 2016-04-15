@@ -1,8 +1,8 @@
 #pragma once
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <vector>
-//#include "myscene.h"
-#include "TestScene.h"
+#include "myscene.h"
+//#include "TestScene.h"
 
 class faceDemo {
 public:

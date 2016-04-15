@@ -4,8 +4,8 @@
 #include "stdafx.h"
 #include "faceDemo.h"
 
-//HeadScene scene;
-TestScene scene;
+HeadScene scene;
+//TestScene scene;
 faceDemo::faceDemo() {
 };
 
@@ -49,7 +49,6 @@ void faceDemo::MouseControl(GLFWwindow* window, int button, int action, int mods
 }
 
 void faceDemo::Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	//scene.KeyboardFunction(key, action);
 	scene.KeyboardFunction(key, action);
 }
 
@@ -65,7 +64,6 @@ void faceDemo::Loop() {
 };
 
 void faceDemo::Render() {
-	//scene.RenderScene();
 	scene.RenderScene();
 };
 
@@ -84,4 +82,3 @@ int main()
 	facedemo->Loop();
     return 0;
 }
-
