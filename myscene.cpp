@@ -113,7 +113,7 @@ void HeadScene::InitScene()
 	head.LoadMesh("head.obj");
 	head.AttachShadowShader("vshadow.glsl", "fshadow.glsl");
 	head.BufferObjectData();
-	head.AttachShader("vbling.glsl", "fbling.glsl");
+	head.AttachShader("vbling2.glsl", "fbling2.glsl");
 
 	FBO_ID = CreateRenderTextureForShadow_();
 
@@ -135,6 +135,9 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) light_position.x -= 0.2;
 	if (key == GLFW_KEY_Q && action == GLFW_PRESS) light_position.z += 0.2;
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_position.z -= 0.1;
+	if (key == GLFW_KEY_Z && action == GLFW_PRESS) eye = vec3(0, 0, 2);
+	if (key == GLFW_KEY_X && action == GLFW_PRESS) eye = vec3(2, 0, 0);
+	if (key == GLFW_KEY_Y && action == GLFW_PRESS) eye = vec3(-2, 0, 0);
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
@@ -186,20 +189,20 @@ void HeadScene::InitParameters_()
 	GLfloat iRight = 0.2;
 	GLfloat iBottom = -0.2;
 	GLfloat iTop = 0.2;
-	GLfloat  zNear = -0.5;
+	GLfloat  zNear = 0.1;
 	GLfloat zFar = 1;
 	projection_matrix = ortho(iLeft, iRight, iBottom, iTop, zNear, zFar);
 
-	eye = vec3(0.0, 0.0, 2.0);
+	eye = vec3(0.0, 2.0, 0.0);
 	at = vec3(0.0, 0.0, 0.0);
 	up = vec3(0.0, 1.0, 0.0);
-	view_matrix = lookAt(eye, at, up);
-
+	//view_matrix = lookAt(eye, at, up);
+	view_matrix = lookAt(vec3(1, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0));
 	model_matrix = mat4(1.0);
 
 	mvp_matrix = projection_matrix * view_matrix * model_matrix;
 	
-	light_position = vec3(0, 0, 2);
+	light_position = vec3(3, 0, 0);
 	light_la = vec3(0.5, 0.5, 0.5);
 	light_ld = vec3(0.5, 0.5, 0.5);
 	light_ls = vec3(1, 1, 1);
@@ -213,9 +216,10 @@ void HeadScene::InitParameters_()
 void HeadScene::UpdateModelMatrix_() 
 {
 	model_matrix = mat4(1.0);
-	model_matrix = scale(model_matrix, vec3(scale_factor));
+	//model_matrix = scale(model_matrix, vec3(scale_factor));
 	model_matrix = rotate<float>(model_matrix, rotate_factor.y, vec3(0, 1, 0));
 	model_matrix = rotate<float>(model_matrix, rotate_factor.x, vec3(1, 0, 0));
+	view_matrix = lookAt(vec3(1,0,0), vec3(0,0,0), vec3(0,1,0));
 }
 
 void HeadScene::GetUniformLocations_(GLuint shader_ID)

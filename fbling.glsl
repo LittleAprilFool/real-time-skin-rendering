@@ -69,7 +69,8 @@ vec4 GetShadowCoord()
 	mat4 depthMVP = depth_projection_matrix * depth_view_matrix * depth_model_matrix;
 	
 	mat4 depthBiasMVP = biasMatrix*depthMVP;
-	vec4 shadowcoord = depthBiasMVP * position;
+	vec4 shadowcoord = depthMVP * position;
+	shadowcoord = shadowcoord / 3 + 0.5;
 	return shadowcoord;
 }
 
@@ -116,7 +117,13 @@ vec3 ComputeSpecularColor(vec3 kd, vec3 light, vec3 norm)
 
 vec3 ScatteredTestColor(float depth)
 {
-	float depth_u = depth / 20;
+	float depth_u = depth * 5;
+	if(depth_u < 0.1) depth_u = 0.1;
+	if(depth_u > 0.3) depth_u = 0.3;
+//	if(depth_u > 0.5) return vec3(1,0,0);
+//	if(depth_u > 0.3) return vec3(0,1,0);
+//	if(depth_u > 0.1) return vec3(0,0,1);
+	return vec3(depth_u,0,0);
 	return texture(map_scattered, vec2(depth_u, 0.5)).xyz;
 }
 
@@ -146,9 +153,9 @@ void main()
 
 	vec3 light_intensity;
 //	light_intensity = diffuse * visibility + ambient * visibility;
-//	light_intensity = ScatteredTestColor(depth);
-	visibility = 0.2;
-	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
+	light_intensity = ScatteredTestColor(depth);
+//	visibility = 0.2;
+//	if (mode == 1) light_intensity = kd * 0.5 + diffuse * visibility + ambient * visibility;
 //	if (mode == 2) light_intensity = wrapLight(light, norm.xyz) * visibility + kdColor.xyz * 0.6;
 //	if (mode == 3) light_intensity = wrapLight(light, norm.xyz);
 	fColor = vec4(light_intensity, 1);
