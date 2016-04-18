@@ -44,5 +44,6 @@ void main()
 	shadowcoord = GetShadowCoord();
 	//compute position
 	gl_Position = projection_matrix * view_matrix * model_matrix * vposition;
+	//gl_Position = shadowcoord;
 	gl_Position.a = 1;
 }

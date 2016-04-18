@@ -1,4 +1,6 @@
 #version 400
+precision highp float;
+precision highp int;
 
 in vec4 position;
 in vec2 texcoord;
@@ -67,32 +69,7 @@ float GetDepth(vec3 light, vec3 norm)
 	float visibility = 1;
 	float bias = 0.005 * tan(acos(dot(light, norm)));
 	bias = clamp(bias, 0.0f, 0.01f);
-	float depth = abs((shadowcoord.z-bias) - texture(map_rendered, shadowcoord.xy).z);
-	//float depth = texture(map_rendered, shadowcoord.xy).z;
-	//float depth1 = texture(map_rendered, shadowcoord.xy + vec2(0.01, 0.01)).z;
-	//float depth2 = texture(map_rendered, shadowcoord.xy + vec2(-0.01, 0.01)).z;
-	//float depth3 = texture(map_rendered, shadowcoord.xy + vec2(0.01, -0.01)).z;
-	//float depth4 = texture(map_rendered, shadowcoord.xy + vec2(-0.01, -0.01)).z;
-
-	//float depth = (depth1 + depth2 + depth3 + depth4) / 4;
-	//if(depth == 1) {
-	//	float depth1 = texture(map_rendered, shadowcoord.xy + vec2(0.001, 0.001)).z;
-	//	float depth2 = texture(map_rendered, shadowcoord.xy + vec2(-0.001, 0.001)).z;
-	//	float depth3 = texture(map_rendered, shadowcoord.xy + vec2(0.001, -0.001)).z;
-	//	float depth4 = texture(map_rendered, shadowcoord.xy + vec2(-0.001, -0.001)).z;
-	//	float depth5 = texture(map_rendered, shadowcoord.xy + vec2(0.002, 0.002)).z;
-	//	float depth6 = texture(map_rendered, shadowcoord.xy + vec2(-0.002, 0.002)).z;
-	//	float depth7 = texture(map_rendered, shadowcoord.xy + vec2(0.002, -0.002)).z;
-	//	float depth8 = texture(map_rendered, shadowcoord.xy + vec2(-0.002, -0.002)).z;
-	//	if(depth5 != 1) depth = depth5;
-	//	if(depth6 != 1) depth = depth6;
-	//	if(depth7 != 1) depth = depth7;
-	//	if(depth8 != 1) depth = depth8;
-	//	if(depth1 != 1) depth = depth1;
-	//	if(depth2 != 1) depth = depth2;
-	//	if(depth3 != 1) depth = depth3;
-	//	if(depth4 != 1) depth = depth4;
-	//}
+	float depth = abs((shadowcoord.z - bias) - texture(map_rendered, shadowcoord.xy).z);
 	return depth;
 }
 
@@ -131,15 +108,11 @@ vec3 ComputeSpecularColor(vec3 kd, vec3 light, vec3 norm)
 vec3 ScatteredTestColor(float depth)
 {
 	float depth_u = depth * 4;
+//	float depth_u = depth;
 	if(depth_u >= 1) depth_u = 0.995;
 	if(depth_u <= 0) depth_u = 0.005;
-//	if(depth_u > 0.1) depth_u = 1;
-//	float depth_u = depth * 5;
-//	if(depth_u > 0.4) return vec3(1,1,0);
-//	if(depth_u > 0.3) return vec3(1,0,0);
-//	if(depth_u > 0.1) return vec3(0,1,0);
-//	if(depth_u > 0.0) return vec3(0,0,1);
 //	return vec3(depth_u, 0 ,0);
+//	return texture(map_rendered, shadowcoord.xy).xyz;
 	return texture(map_scattered, vec2(depth_u, 0.5)).xyz;
 }
 

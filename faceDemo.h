@@ -15,5 +15,9 @@ public:
 private:
 	static void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void MouseControl(GLFWwindow* window, int button, int action, int mods);
+	static void CursorPosition(GLFWwindow* window, double xpos, double ypos);
 	GLFWwindow* window;
+	GLFWwindow* light;
+	int width;
+	int height;
 };

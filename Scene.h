@@ -7,7 +7,7 @@ public:
 	Scene();
 	~Scene();
 	virtual void RenderScene() = 0;
-	virtual void InitScene() = 0;
+	virtual void InitScene(int width, int height) = 0;
 	virtual void KeyboardFunction(int key, int action) = 0;
 
 protected:

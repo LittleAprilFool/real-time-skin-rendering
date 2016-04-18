@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "myscene.h"
 
-Object head;
-Object cube;
-
 HeadScene::HeadScene()
 {
 }
@@ -24,65 +21,56 @@ void HeadScene::RenderScene()
 {
 	UpdateModelMatrix_();
 	//draw shadow map first
-	
+	//bind fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
+	//glEnable(GL_MULTISAMPLE);
 	DrawShadowMap_();
-	BindFBOForHead_();
+	//bind fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDisable(GL_MULTISAMPLE);
+	BindFBO_(head);
+}
+
+void HeadScene::RenderLight()
+{
+	//bind fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
+	DrawShadowMap_();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	BindFBO_(cube);
 }
 
 void HeadScene::DrawShadowMap_() 
 {
-	//bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//bind head vao
-	glBindVertexArray(head.vao_handles);
+	glBindVertexArray(head->vao_handles);
 	//use head shader
-	glUseProgram(head.shadow_shader_ID);
+	glUseProgram(head->shadow_shader_ID);
 	//get uniform Locations
-	GetUniformLocations_(head.shadow_shader_ID);
+	GetUniformLocations_(head->shadow_shader_ID);
 	//update data to shader
 	TransferDataToShader_();
-	PassDepthMVP(head.shadow_shader_ID);
+	PassDepthMVP(head->shadow_shader_ID);
 	//draw array
-	DrawArray_(head.face_number);
+	DrawArray_(head->face_number);
 }
 
-void HeadScene::BindFBOForCube_() 
+void HeadScene::BindFBO_(Object* obj) 
 {
-	//bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//bind cube vao
-	glBindVertexArray(cube.vao_handles);
+	glBindVertexArray(obj->vao_handles);
 	//use cube shader
-	glUseProgram(cube.shader_ID);
+	glUseProgram(obj->shader_ID);
 	//get uniform locations
-	GetUniformLocations_(cube.shader_ID);
+	GetUniformLocations_(obj->shader_ID);
 	//update data to shader
 	TransferDataToShader_();
 	//depth info
-	PassDepthMVP(cube.shader_ID);
+	PassDepthMVP(obj->shader_ID);
 	//draw array
-	DrawArray_(cube.face_number);
-}
-
-void HeadScene::BindFBOForHead_()
-{
-	//bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//bind cube vao
-	glBindVertexArray(head.vao_handles);
-	//use cube shader
-	glUseProgram(head.shader_ID);
-	//get uniform locations
-	GetUniformLocations_(head.shader_ID);
-	//update data to shader
-	TransferDataToShader_();
-	//depth info
-	PassDepthMVP(head.shader_ID);
-	//draw array
-	DrawArray_(head.face_number);
+	DrawArray_(obj->face_number);
 }
 
 void HeadScene::TransferDataToShader_()
@@ -104,26 +92,32 @@ void HeadScene::TransferDataToShader_()
 	glUniform1f(loc_material_shininess, material_shininess);
 }
 
-void HeadScene::InitScene() 
+void HeadScene::InitScene(int width, int height) 
 {
 	InitGLFunc_();
 	InitParameters_();
-	
-	head.LoadMesh("head.obj");
-	head.AttachShadowShader("vshadow.glsl", "fshadow.glsl");
-	head.BufferObjectData();
-	head.AttachShader("vbling.glsl", "fbling.glsl");
 
-	FBO_ID = CreateRenderTextureForShadow_();
-
+	scene_width = width;
+	scene_height = height;
 
 	LoadTexture(GL_TEXTURE1, texture_kd_ID, "head-texture.jpg");
 	LoadTexture(GL_TEXTURE2, texture_bump_ID, "head-normal.jpg");
 	LoadTexture(GL_TEXTURE3, texture_scattered_ID, "head-scattered.jpg");
+	FBO_ID = CreateRenderTextureForShadow_();
+}
 
-	cube.LoadMesh("cube.obj");
-	cube.AttachShader("vtest.glsl", "ftest.glsl");
-	cube.BufferObjectData();
+void HeadScene::InitObject()
+{
+	head = new Object;
+	head->LoadMesh("head.obj");
+	head->AttachShadowShader("vshadow.glsl", "fshadow.glsl");
+	head->BufferObjectData();
+	head->AttachShader("vbling.glsl", "fbling.glsl");
+
+	cube = new Object;
+	cube->LoadMesh("cube.obj");
+	cube->AttachShader("vtest.glsl", "ftest.glsl");
+	cube->BufferObjectData();
 }
 
 void HeadScene::KeyboardFunction(int key, int action) 
@@ -136,6 +130,8 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_E && action == GLFW_PRESS) light_position.z -= 0.1;
 	if (key == GLFW_KEY_Z && action == GLFW_PRESS) eye = vec3(0, 0, 1);
 	if (key == GLFW_KEY_X && action == GLFW_PRESS) eye = vec3(1, 0, 0);
+	if (key == GLFW_KEY_C && action == GLFW_PRESS) light_position = vec3(5, 0, 0);
+	if (key == GLFW_KEY_V && action == GLFW_PRESS) light_position = vec3(0, 5, 0);
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
@@ -155,6 +151,48 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
 
+void HeadScene::MouseControl(int button, int action, int mods) 
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		mouse_press_left = true;
+		mouse_position_o = mouse_position;
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		mouse_press_left = false;
+		mouse_position_o = vec2(0, 0);
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		mouse_press_right = true;
+		mouse_position_o = mouse_position;
+	}
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		mouse_press_right = false;
+		mouse_position_o = vec2(0, 0);
+	}
+}
+
+void HeadScene::CursorPosition(double xpos, double ypos)
+{
+	mouse_position.x = xpos;
+	mouse_position.y = ypos;
+
+	if (mouse_press_left == true)
+	{
+		rotate_factor.y = rotate_factor.y + (mouse_position.x - mouse_position_o.x) / (10 * scene_width);
+		rotate_factor.x = rotate_factor.x - (mouse_position.y - mouse_position_o.y) / (10 * scene_height);
+	}
+
+
+	if (mouse_press_right == true)
+	{
+		scale_factor = scale_factor + (mouse_position.y - mouse_position_o.y) / (10 * scene_width);
+	}
+}
+
 void HeadScene::InitGLFunc_()
 {
 	glEnable(GL_BLEND);
@@ -167,12 +205,12 @@ void HeadScene::InitGLFunc_()
 	glDepthFunc(GL_LEQUAL);
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	glEnable(GL_MULTISAMPLE);
+//	glEnable(GL_MULTISAMPLE);
 
-	glEnable(GL_POINT_SMOOTH);
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST); // Make round points, not square points  
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+//	glEnable(GL_POINT_SMOOTH);
+//	glEnable(GL_LINE_SMOOTH);
+//	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST); // Make round points, not square points  
+//	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 }
 
 void HeadScene::InitParameters_()
@@ -200,7 +238,7 @@ void HeadScene::InitParameters_()
 	view_matrix = lookAt(eye, at, up);
 	model_matrix = mat4(1.0);
 	
-	light_position = vec3(0, 0, -1);
+	light_position = vec3(0, 0, -5);
 	light_la = vec3(0.5, 0.5, 0.5);
 	light_ld = vec3(0.3, 0.3, 0.3);
 	light_ls = vec3(0.5, 0.5, 0.5);
@@ -209,6 +247,11 @@ void HeadScene::InitParameters_()
 	material_kd = vec3(0.5, 0.5, 0.5);
 	material_ks = vec3(0.5, 0.5, 0.5);
 	material_shininess = 0.3;
+
+	mouse_position = vec2(0, 0);
+	mouse_position_o = vec2(0, 0);
+	mouse_press_left = false;
+	mouse_press_right = false;
 }
 
 void HeadScene::UpdateModelMatrix_() 
@@ -297,9 +340,9 @@ GLuint HeadScene::CreateRenderTextureForShadow_()
 	glBindTexture(GL_TEXTURE_2D, texture_depth_ID);
 
 	//bind to shader
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 800, 600, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, 800, 800, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 

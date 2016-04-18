@@ -7,8 +7,12 @@ public:
 	HeadScene();
 	~HeadScene();
 	void RenderScene();
-	void InitScene();
+	void RenderLight();
+	void InitScene(int width, int height);
+	void InitObject();
 	void KeyboardFunction(int key, int action);
+	void MouseControl(int button, int action, int mods);
+	void CursorPosition(double xpos, double ypos);
 
 
 	float scale_factor;
@@ -77,8 +81,15 @@ private:
 	float material_shininess;
 	int face_number;
 	void UpdateModelMatrix_();
-	void BindFBOForCube_();
-	void BindFBOForHead_();
+	void BindFBO_(Object* obj);
 	void DrawShadowMap_();
+	Object* head;
+	Object* cube;
+	vec2 mouse_position;
+	vec2 mouse_position_o;
+	bool mouse_press_left;
+	bool mouse_press_right;
+	int scene_width;
+	int scene_height;
 };
 
