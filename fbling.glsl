@@ -63,6 +63,8 @@ float GetVisibility(vec3 light, vec3 norm, float depth)
 	if( factor > 1) visibility = 1 / factor;
 	visibility = visibility - 0.5;
 	visibility = visibility * 2;
+	visibility = 1;
+	if(shadowcoord.z - bias * 2 > depth) visibility = 0.2;
 	if(visibility < 0) visibility = 0;
 	return visibility;
 }
@@ -108,17 +110,17 @@ vec3 ComputeWrapDiffuseColor(vec3 kd, vec3 light, vec3 norm)
 	return Material.kd * Light.ld * max(NdotL_wrap, 0);
 }
 
-vec3 ComputeScatterColor(vec3 kd, vec3 light, vec3 norm)
-{
-	float wrap = 0.2;
-	float NdotL = dot(norm, light);
-	float NdotL_wrap = (NdotL + wrap) / (1 + wrap);
-	float scatter_width = 0.3;
-	vec3 scatter_color = vec3(0.15,0,0);
-	float scatter_factor = smoothstep(0, scatter_width, NdotL_wrap) * 
-					smoothstep(2 * scatter_width, scatter_width, NdotL_wrap);
-	return scatter_factor * scatter_color;
-}
+//vec3 ComputeScatterColor(vec3 kd, vec3 light, vec3 norm)
+//{
+//	float wrap = 0.2;
+//	float NdotL = dot(norm, light);
+//	float NdotL_wrap = (NdotL + wrap) / (1 + wrap);
+//	float scatter_width = 0.3;
+//	vec3 scatter_color = vec3(0.15,0,0);
+//	float scatter_factor = smoothstep(0, scatter_width, NdotL_wrap) * 
+//					smoothstep(2 * scatter_width, scatter_width, NdotL_wrap);
+//	return scatter_factor * scatter_color;
+//}
 
 vec3 ComputeSpecularColor(vec3 kd, vec3 light, vec3 norm)
 {
@@ -155,16 +157,16 @@ void main()
 
 	vec3 ambient = Material.ka * Light.la;
 
-//	vec3 scatter = ComputeScatterColor(kd, light, norm);
+	vec3 scatter = ComputeScatterColor(thickness);
 
 	vec3 spec = ComputeSpecularColor(kd, light, norm);
 
 	vec3 light_intensity;
 //	light_intensity = diffuse * visibility + ambient * visibility;
 //	light_intensity = ComputeScatterColor(depth);
-	if (mode == 1) light_intensity = kd * 0.8 + diffuse * visibility + ambient * visibility + 0.3 * ComputeScatterColor(thickness);
+	if (mode == 1) light_intensity = kd * 0.8 + diffuse * visibility + ambient * visibility + 0.3 * scatter;
 	if (mode == 2) light_intensity = kd * 0.8 + diffuse * visibility + ambient * visibility;
-	if (mode == 3) light_intensity = ComputeScatterColor(thickness);
+	if (mode == 3) light_intensity = scatter;
 	if (mode == 4) light_intensity = diffuse * visibility + ambient * visibility;
 	if (mode == 5) light_intensity = diffuse + ambient;
 //	if (mode == 3) light_intensity = wrapLight(light, norm.xyz);
