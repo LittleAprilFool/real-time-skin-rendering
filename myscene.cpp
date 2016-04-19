@@ -189,7 +189,7 @@ void HeadScene::CursorPosition(double xpos, double ypos)
 
 	if (mouse_press_right == true)
 	{
-		scale_factor = scale_factor + (mouse_position.y - mouse_position_o.y) / (10 * scene_width);
+		scale_factor = scale_factor + (mouse_position.y - mouse_position_o.y + mouse_position.x - mouse_position_o.x) / (20 * scene_width);
 	}
 }
 
