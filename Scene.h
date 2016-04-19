@@ -1,5 +1,6 @@
 #include "obj3d.h"
 #include "TextureManager.h"
+#include "shader.h"
 #pragma once
 class Scene
 {
@@ -11,7 +12,9 @@ public:
 	virtual void KeyboardFunction(int key, int action) = 0;
 
 protected:
-	void LoadTexture(int gl_texture_para, int texture_ID, char* file_name);
-
+	void LoadTexture(int gl_texture_para, char* file_name);
+	GLuint LoadShader(ShaderProgram* shader, const char* vertex_shader_filename, const char* fragment_shader_filename);
+	GLuint CreateRenderTexture_(int texture_unit, int width, int height);
+	GLuint CreateRenderTextureForShadow_(int texture_unit, int width, int height);
 };
 

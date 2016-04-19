@@ -29,6 +29,8 @@ uniform MaterialInfo Material;
 
 uniform float mode;
 
+uniform vec3 eye_position;
+
 uniform mat4 depth_model_matrix;
 uniform mat4 depth_view_matrix;
 uniform mat4 depth_projection_matrix;
@@ -42,15 +44,15 @@ uniform sampler2D map_bump;
 uniform sampler2D map_rendered;
 uniform sampler2D map_scattered;
 
-vec3 GetTBNTransformedLight()
+vec3 GetTBNTransformedVector(vec3 vector)
 {
 	vec4 T = tangent;
 	vec3 N = normalize(normal.xyz);
 	vec3 B = normalize(cross(N, T.xyz)) * T.w;
 	mat3 TBN = mat3(T.x, B.x, N.x, T.y, B.y, N.y, T.z, B.z, N.z);
-	vec3 light = normalize(Light.position.xyz - position.xyz);
-	light = normalize(TBN * light);
-	return light;
+	vec3 transform_vector = normalize(vector.xyz - position.xyz);
+	transform_vector = normalize(TBN * transform_vector);
+	return transform_vector;
 }
 
 float GetVisibility(vec3 light, vec3 norm, float depth)
@@ -63,8 +65,8 @@ float GetVisibility(vec3 light, vec3 norm, float depth)
 	if( factor > 1) visibility = 1 / factor;
 	visibility = visibility - 0.5;
 	visibility = visibility * 2;
-	visibility = 1;
-	if(shadowcoord.z - bias * 2 > depth) visibility = 0.2;
+	//visibility = 1;
+	//if(shadowcoord.z - bias * 2 > depth) visibility = 0.2;
 	if(visibility < 0) visibility = 0;
 	return visibility;
 }
@@ -97,35 +99,15 @@ float GetThickness(float depth)
 	return thickness;
 }
 
-vec3 ComputeDiffuseColor(vec3 kd, vec3 light, vec3 norm)
+vec3 ComputeDiffuseColor(vec3 light, vec3 norm)
 {
 	return Material.kd * Light.ld * max(dot(light,norm), 0);
 }
 
-vec3 ComputeWrapDiffuseColor(vec3 kd, vec3 light, vec3 norm)
-{
-	float wrap = 0.2;
-	float NdotL = dot(norm, light);
-	float NdotL_wrap = (NdotL + wrap) / (1 + wrap);
-	return Material.kd * Light.ld * max(NdotL_wrap, 0);
-}
-
-//vec3 ComputeScatterColor(vec3 kd, vec3 light, vec3 norm)
-//{
-//	float wrap = 0.2;
-//	float NdotL = dot(norm, light);
-//	float NdotL_wrap = (NdotL + wrap) / (1 + wrap);
-//	float scatter_width = 0.3;
-//	vec3 scatter_color = vec3(0.15,0,0);
-//	float scatter_factor = smoothstep(0, scatter_width, NdotL_wrap) * 
-//					smoothstep(2 * scatter_width, scatter_width, NdotL_wrap);
-//	return scatter_factor * scatter_color;
-//}
-
-vec3 ComputeSpecularColor(vec3 kd, vec3 light, vec3 norm)
+vec3 ComputeSpecularColor(vec3 light, vec3 eye, vec3 norm)
 {
 	vec3 re = reflect(-light, norm);
-	float factor = pow(max(dot(re, position.xyz),0), Material.shininess);
+	float factor = pow(max(dot(re, eye),0), Material.shininess);
 	return Light.ls * Material.ks * factor;
 }
 
@@ -141,7 +123,9 @@ void main()
 {
 	vec3 kd = texture(map_kd, texcoord).xyz;
 
-	vec3 light = GetTBNTransformedLight();
+	vec3 light = GetTBNTransformedVector(Light.position);
+
+	vec3 eye = GetTBNTransformedVector(eye_position);
 
 	vec3 norm = 2 * texture(map_bump, texcoord).xyz - vec3(1.0);
 
@@ -151,24 +135,22 @@ void main()
 
 	float visibility = GetVisibility(light, norm, depth);
 
-	vec3 diffuse = ComputeDiffuseColor(kd, light, norm);
-
-//	vec3 diffuse_wrap = ComputeWrapDiffuseColor(kd, light, norm);
+	vec3 diffuse = ComputeDiffuseColor(light, norm);
 
 	vec3 ambient = Material.ka * Light.la;
 
 	vec3 scatter = ComputeScatterColor(thickness);
 
-	vec3 spec = ComputeSpecularColor(kd, light, norm);
+	vec3 specular = ComputeSpecularColor(light, eye, norm);
 
 	vec3 light_intensity;
-//	light_intensity = diffuse * visibility + ambient * visibility;
-//	light_intensity = ComputeScatterColor(depth);
-	if (mode == 1) light_intensity = kd * 0.8 + diffuse * visibility + ambient * visibility + 0.3 * scatter;
-	if (mode == 2) light_intensity = kd * 0.8 + diffuse * visibility + ambient * visibility;
-	if (mode == 3) light_intensity = scatter;
-	if (mode == 4) light_intensity = diffuse * visibility + ambient * visibility;
-	if (mode == 5) light_intensity = diffuse + ambient;
-//	if (mode == 3) light_intensity = wrapLight(light, norm.xyz);
+	light_intensity = diffuse + ambient + specular;
+
+	if (mode == 1) light_intensity = kd * (diffuse + ambient + specular) * visibility + scatter * 0.1;
+	if (mode == 2) light_intensity = diffuse + ambient + specular + scatter;
+	if (mode == 3) light_intensity = diffuse;
+	if (mode == 4) light_intensity = diffuse + ambient;
+	if (mode == 5) light_intensity = diffuse + ambient + specular;
+	if (mode == 6) light_intensity = diffuse + ambient + specular + scatter;
 	fColor = vec4(light_intensity, 1);
 }

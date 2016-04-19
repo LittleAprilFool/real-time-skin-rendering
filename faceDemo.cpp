@@ -57,13 +57,10 @@ void faceDemo::Init() {
 	glfwSetMouseButtonCallback(light, MouseControl);
 
 	glfwMakeContextCurrent(window);
-	//scene.InitScene();
 	scene.InitScene(width, height);
-	scene.InitObject();
 
 	glfwMakeContextCurrent(light);
 	scene.InitScene(width, height);
-	scene.InitObject();
 }
 
 void faceDemo::CursorPosition(GLFWwindow* window, double xpos, double ypos) {

@@ -27,21 +27,15 @@ public:
 	std::vector<group> tgroup;
 
 	void LoadMesh(char* filename);
-	
-	void AttachShadowShader(const char* vertex_shader_filename, const char* fragment_shader_filename);
-	void AttachShader(const char* vertex_shader_filename, const char* fragment_shader_filename);
 	void BufferObjectData();
 	void Clear();
 	int face_number;
-	GLuint shader_ID;
-	GLuint shadow_shader_ID;
+
 	GLuint vao_handles;
 
 protected:
 	void ComputeVnormal();
 	void ComputeTBN();
-	ShaderProgram* shader;
-	ShaderProgram* shadow_shader;
 
 private:
 	void PrintVertice();
