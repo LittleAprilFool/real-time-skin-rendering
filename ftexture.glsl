@@ -30,6 +30,7 @@ uniform mat4 depth_view_matrix;
 uniform mat4 depth_projection_matrix;
 
 uniform sampler2D map_bump;
+uniform sampler2D map_kd;
 
 vec3 GetTBNTransformedVector(vec3 vector)
 {

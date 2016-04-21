@@ -13,7 +13,7 @@ Scene::~Scene()
 
 void Scene::LoadTexture(int gl_texture_para, char* file_name) {
 	glActiveTexture(gl_texture_para);
-	TextureManager::Inst()->LoadTexture(file_name, GL_BGR);
+	TextureManager::Inst()->LoadTexture(file_name, gl_texture_para - GL_TEXTURE0, GL_BGR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    // ÏßÐÔÂË²¨
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
@@ -35,7 +35,7 @@ GLuint Scene::CreateRenderTexture_(int texture_unit, int width, int height)
 
 	glActiveTexture(texture_unit);
 
-	GLuint texture_ID = 0;
+	GLuint texture_ID = texture_unit - GL_TEXTURE0;
 	glGenTextures(1, &texture_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
 
@@ -71,6 +71,7 @@ GLuint Scene::CreateRenderTextureForShadow_(int texture_unit, int width, int hei
 	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
+	std::cout << texture_ID << std::endl;
 
 	//bind to shader
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);

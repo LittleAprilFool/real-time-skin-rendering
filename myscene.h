@@ -58,6 +58,7 @@ private:
 	GLuint loc_map_rendered;
 	GLuint loc_map_scattered;
 	GLuint loc_map_light;
+	GLuint loc_map_blur;
 
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -70,10 +71,12 @@ private:
 	GLuint texture_depth_ID;
 	GLuint texture_scattered_ID;
 	GLuint texture_light_ID;
+	GLuint texture_blur_ID;
 	
 	GLuint buffer_depth_ID;
 	GLuint fbo_shadow_ID;
 	GLuint fbo_texture_ID;
+	GLuint fbo_blur_ID;
 	
 	mat4 projection_matrix;
 	mat4 model_matrix;

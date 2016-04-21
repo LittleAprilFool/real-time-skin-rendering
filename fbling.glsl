@@ -43,6 +43,7 @@ uniform sampler2D map_kd;
 uniform sampler2D map_bump;
 uniform sampler2D map_rendered;
 uniform sampler2D map_scattered;
+uniform sampler2D map_blur;
 
 vec3 GetTBNTransformedVector(vec3 vector)
 {
@@ -145,11 +146,10 @@ void main()
 
 	vec3 light_intensity;
 	light_intensity = diffuse + ambient + specular;
-
 	if (mode == 1) light_intensity = kd * (diffuse + ambient + specular) * visibility + scatter * 0.1;
 	if (mode == 2) light_intensity = diffuse + ambient + specular + scatter;
 	if (mode == 3) light_intensity = diffuse;
-	if (mode == 4) light_intensity = diffuse + ambient;
+	if (mode == 4) light_intensity = texture(map_blur, texcoord).xyz * kd;
 	if (mode == 5) light_intensity = diffuse + ambient + specular;
 	if (mode == 6) light_intensity = diffuse + ambient + specular + scatter;
 	fColor = vec4(light_intensity, 1);

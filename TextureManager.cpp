@@ -42,9 +42,8 @@ TextureManager::~TextureManager()
 	m_inst = 0;
 }
 
-bool TextureManager::LoadTexture(const char* filename, GLenum image_format, GLint internal_format, GLint level, GLint border)
+bool TextureManager::LoadTexture(const char* filename, const unsigned int texID, GLenum image_format, GLint internal_format, GLint level, GLint border)
 {
-	int texID = 0;
 	//image format
 	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 	//pointer to the image, once loaded

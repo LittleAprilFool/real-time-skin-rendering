@@ -15,22 +15,27 @@ void HeadScene::RenderScene()
 	UpdateModelMatrix_();
 	//draw shadow map first
 	//bind fbo
-	//glBindFramebuffer(GL_FRAMEBUFFER, FBO_ID);
-	//RenderObject_(head, shadow_shader_ID);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_ID);
+	//RenderObject_(head, shader_shadow_ID);
 	//bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_texture_ID);
+	//RenderObject_(head, shader_bling_ID);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderObject_(head, shader_texture_ID);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
 	RenderObject_(head, shader_blur_ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderObject_(head, shader_bling_ID);
+	//RenderObject_(head, shader_test_ID);
 }
 
 void HeadScene::RenderLight()
 {
 	//bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_texture_ID);
 	RenderObject_(head, shader_texture_ID);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//RenderObject_(cube, test_shader_ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderObject_(head, shader_blur_ID);
 }
 
 void HeadScene::RenderObject_(Object* obj, GLuint shader_ID) 
@@ -62,17 +67,17 @@ void HeadScene::InitScene(int width, int height)
 	LoadTexture(texture_scattered_ID, "head-scattered.jpg");
 
 	//load shaders
-	//bling_shader_ID = LoadShader(bling_shader, "vbling.glsl", "fbling.glsl");
+	shader_bling_ID = LoadShader(shader_bling, "vbling.glsl", "fbling.glsl");
 	shader_texture_ID = LoadShader(shader_texture, "vtexture.glsl", "ftexture.glsl");
 	shader_test_ID = LoadShader(shader_test, "vtest.glsl", "ftest.glsl");
 	shader_blur_ID = LoadShader(shader_blur, "vblur.glsl", "fblur.glsl");
-
-	//shadow_shader_ID = LoadShader(shadow_shader, "vshadow.glsl", "fshadow.glsl");
+	//shader_shadow_ID = LoadShader(shader_shadow, "vshadow.glsl", "fshadow.glsl");
 
 	//create fbo
-	//shadow_fbo_ID = CreateRenderTextureForShadow_();
+	fbo_shadow_ID= CreateRenderTextureForShadow_(texture_rendered_ID, scene_width, scene_height);
 	fbo_texture_ID = CreateRenderTexture_(texture_light_ID, scene_width, scene_height);
-	
+	fbo_blur_ID = CreateRenderTexture_(texture_blur_ID, scene_width, scene_height);
+
 	head = new Object;
 	head->LoadMesh("head.obj");
 	head->BufferObjectData();
@@ -182,9 +187,6 @@ void HeadScene::InitParameters_()
 	translucency_value = 0.5;
 	shading_mode = 1;
 	display_mode = 1;
-	texture_kd_ID = 0;
-	texture_bump_ID = 1;
-	texture_scattered_ID = 2;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;
@@ -221,6 +223,7 @@ void HeadScene::InitParameters_()
 	texture_depth_ID = GL_TEXTURE3;
 	texture_scattered_ID = GL_TEXTURE4;
 	texture_light_ID = GL_TEXTURE5;
+	texture_blur_ID = GL_TEXTURE6;
 }
 
 
@@ -258,6 +261,7 @@ void HeadScene::TransferDataToShader_()
 	glUniform1i(loc_map_bump, texture_bump_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_light, texture_light_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_scattered, texture_scattered_ID - GL_TEXTURE0);
+	glUniform1i(loc_map_blur, texture_blur_ID - GL_TEXTURE0);
 }
 
 void HeadScene::UpdateModelMatrix_() 
@@ -298,6 +302,7 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_map_rendered = glGetUniformLocation(shader_ID, "map_rendered");
 	loc_map_scattered = glGetUniformLocation(shader_ID, "map_scattered");
 	loc_map_light = glGetUniformLocation(shader_ID, "map_light");
+	loc_map_blur = glGetUniformLocation(shader_ID, "map_blur");
 
 	loc_depth_model_matrix = glGetUniformLocation(shader_ID, "depth_model_matrix");
 	loc_depth_view_matrix = glGetUniformLocation(shader_ID, "depth_view_matrix");
