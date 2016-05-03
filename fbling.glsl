@@ -99,10 +99,16 @@ float GetThickness(float depth)
 
 vec3 ComputeScatterColor(float thickness)
 {
+	float value = thickness * 20;
 	float scattered_x = thickness * 4;
 	if(scattered_x >= 1) scattered_x = 1;
-	if(scattered_x == 0) return vec3(0,0,0);
-	return texture(map_scattered, vec2(scattered_x, 0.5)).xyz;
+	if(scattered_x <= 0.01) return vec3(0,0,0);
+	//return texture(map_scattered, vec2(scattered_x, 0.5)).xyz;
+	if(value < 0.5) value = 1 - value;
+	if(value > 1) value = 1;
+	value = 1 - value;
+	return vec3(value, 0,0);
+	//return texture(map_scattered, vec2(value, 0.5)).xyz;
 }
 
 void main()
@@ -130,6 +136,6 @@ void main()
 	if (mode == 3) light_intensity = scatter;
 	if (mode == 4) light_intensity = kd * light_intensity;
 	if (mode == 5) light_intensity = light_intensity;
-	if (mode == 6) light_intensity = scatter;
+	if (mode == 6) light_intensity = kd;
 	fColor = vec4(light_intensity, 1);
 }

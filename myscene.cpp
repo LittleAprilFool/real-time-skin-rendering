@@ -121,6 +121,9 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_Z && action == GLFW_PRESS) eye = vec3(0, 0, 1);
 	if (key == GLFW_KEY_X && action == GLFW_PRESS) eye = vec3(1, 0, 0);
 
+	if (key == GLFW_KEY_C && action == GLFW_PRESS) light_position = vec3(0, 0, -1);
+	if (key == GLFW_KEY_V && action == GLFW_PRESS) light_position = vec3(1, 0, 0);
+	if (key == GLFW_KEY_B && action == GLFW_PRESS) light_position = vec3(-1, 0, 0);
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;

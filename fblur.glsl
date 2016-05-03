@@ -24,7 +24,7 @@ void main()
     weight[8] = vec4(0.0625, 0.0,  0.0,  0.0);
 
 	vec2 tex[9];
-	float bias = 0.005;
+	float bias = 1.0 / 800;
 	tex[0] = texcoord + vec2(-bias, bias);
 	tex[1] = texcoord + vec2(0, bias);
 	tex[2] = texcoord + vec2(bias, bias);
