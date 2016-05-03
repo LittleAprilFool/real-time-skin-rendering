@@ -35,8 +35,9 @@ GLuint Scene::CreateRenderTexture_(int texture_unit, int width, int height)
 
 	glActiveTexture(texture_unit);
 
-	GLuint texture_ID = texture_unit - GL_TEXTURE0;
+	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
+	std::cout << "texture_uint " << texture_unit << " texture_ID " << texture_ID << std::endl;
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
 
 	//bind to shader
@@ -59,7 +60,7 @@ GLuint Scene::CreateRenderTexture_(int texture_unit, int width, int height)
 
 
 //this function is for creating depth color mode for rendering screen to texture
-GLuint Scene::CreateRenderTextureForShadow_(int texture_unit, int width, int height)
+GLuint Scene::CreateRenderTextureForDepth_(int texture_unit, int width, int height)
 {
 	//create FBO
 	GLuint FBOName;
@@ -71,7 +72,7 @@ GLuint Scene::CreateRenderTextureForShadow_(int texture_unit, int width, int hei
 	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
-	std::cout << texture_ID << std::endl;
+	std::cout << "texture_unit"<<texture_unit<<"texture_ID"<<texture_ID << std::endl;
 
 	//bind to shader
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);

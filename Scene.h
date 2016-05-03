@@ -15,6 +15,6 @@ protected:
 	void LoadTexture(int gl_texture_para, char* file_name);
 	GLuint LoadShader(ShaderProgram* shader, const char* vertex_shader_filename, const char* fragment_shader_filename);
 	GLuint CreateRenderTexture_(int texture_unit, int width, int height);
-	GLuint CreateRenderTextureForShadow_(int texture_unit, int width, int height);
+	GLuint CreateRenderTextureForDepth_(int texture_unit, int width, int height);
 };
 

@@ -35,6 +35,7 @@ private:
 	void TransferDataToShader_();
 
 	void UpdateModelMatrix_();
+	void PrepareToBlur_(GLuint tex);
 
 	GLuint loc_model;
 	GLuint loc_view;
@@ -55,10 +56,11 @@ private:
 	
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
-	GLuint loc_map_rendered;
+	GLuint loc_map_depth;
 	GLuint loc_map_scattered;
 	GLuint loc_map_light;
 	GLuint loc_map_blur;
+	GLuint loc_map_toblur;
 
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -67,15 +69,15 @@ private:
 	
 	GLuint texture_kd_ID;
 	GLuint texture_bump_ID;
-	GLuint texture_rendered_ID;
 	GLuint texture_depth_ID;
 	GLuint texture_scattered_ID;
 	GLuint texture_light_ID;
 	GLuint texture_blur_ID;
+	GLuint texture_toblur_ID;
 	
 	GLuint buffer_depth_ID;
-	GLuint fbo_shadow_ID;
-	GLuint fbo_texture_ID;
+	GLuint fbo_depth_ID;
+	GLuint fbo_light_ID;
 	GLuint fbo_blur_ID;
 	
 	mat4 projection_matrix;
@@ -107,17 +109,18 @@ private:
 	bool mouse_press_right;
 	int scene_width;
 	int scene_height;
+	int blur_time;
 
 	ShaderProgram* shader_bling;
-	ShaderProgram* shader_texture;
+	ShaderProgram* shader_light;
 	ShaderProgram* shader_test;
-	ShaderProgram* shader_shadow;
+	ShaderProgram* shader_depth;
 	ShaderProgram* shader_blur;
 
 	GLuint shader_bling_ID;
-	GLuint shader_texture_ID;
+	GLuint shader_light_ID;
 	GLuint shader_test_ID;
-	GLuint shader_shadow_ID;
+	GLuint shader_depth_ID;
 	GLuint shader_blur_ID;
 };
 

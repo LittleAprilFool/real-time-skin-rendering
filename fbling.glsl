@@ -41,7 +41,7 @@ uniform mat4 view_matrix;
 
 uniform sampler2D map_kd;
 uniform sampler2D map_bump;
-uniform sampler2D map_rendered;
+uniform sampler2D map_depth;
 uniform sampler2D map_scattered;
 uniform sampler2D map_blur;
 
@@ -66,9 +66,8 @@ float GetVisibility(vec3 light, vec3 norm, float depth)
 	if( factor > 1) visibility = 1 / factor;
 	visibility = visibility - 0.5;
 	visibility = visibility * 2;
-	//visibility = 1;
-	//if(shadowcoord.z - bias * 2 > depth) visibility = 0.2;
 	if(visibility < 0) visibility = 0;
+	if(visibility > 1) visibility = 1;
 	return visibility;
 }
 
@@ -81,15 +80,13 @@ float GetDepth(vec3 light, vec3 norm)
 	float bias = 0.005;
 	float depth = 1;
 	float current_depth = 1;
-
 	for(int i = -1; i < 2; i ++)
 	for(int j = -1; j < 2; j ++)
 	{
 		vec2 pos = vec2(xpos + i * bias, ypos + j * bias);
-	    current_depth = texture(map_rendered, pos).z;
+	    current_depth = texture(map_depth, pos).z;
 		if(current_depth < depth) depth = current_depth;
 	}
-
 	return depth;
 }
 
@@ -100,23 +97,11 @@ float GetThickness(float depth)
 	return thickness;
 }
 
-vec3 ComputeDiffuseColor(vec3 light, vec3 norm)
-{
-	return Material.kd * Light.ld * max(dot(light,norm), 0);
-}
-
-vec3 ComputeSpecularColor(vec3 light, vec3 eye, vec3 norm)
-{
-	vec3 re = reflect(-light, norm);
-	float factor = pow(max(dot(re, eye),0), Material.shininess);
-	return Light.ls * Material.ks * factor;
-}
-
 vec3 ComputeScatterColor(float thickness)
 {
 	float scattered_x = thickness * 4;
 	if(scattered_x >= 1) scattered_x = 1;
-	if(scattered_x == 0) scattered_x = 1;
+	if(scattered_x == 0) return vec3(0,0,0);
 	return texture(map_scattered, vec2(scattered_x, 0.5)).xyz;
 }
 
@@ -136,21 +121,15 @@ void main()
 
 	float visibility = GetVisibility(light, norm, depth);
 
-	vec3 diffuse = ComputeDiffuseColor(light, norm);
-
-	vec3 ambient = Material.ka * Light.la;
-
 	vec3 scatter = ComputeScatterColor(thickness);
 
-	vec3 specular = ComputeSpecularColor(light, eye, norm);
-
 	vec3 light_intensity;
-	light_intensity = diffuse + ambient + specular;
-	if (mode == 1) light_intensity = kd * (diffuse + ambient + specular) * visibility + scatter * 0.1;
-	if (mode == 2) light_intensity = diffuse + ambient + specular + scatter;
-	if (mode == 3) light_intensity = diffuse;
-	if (mode == 4) light_intensity = texture(map_blur, texcoord).xyz * kd;
-	if (mode == 5) light_intensity = diffuse + ambient + specular;
-	if (mode == 6) light_intensity = diffuse + ambient + specular + scatter;
+	light_intensity = texture(map_blur, texcoord).xyz;
+	if (mode == 1) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
+	if (mode == 2) light_intensity = kd * light_intensity * visibility;
+	if (mode == 3) light_intensity = scatter;
+	if (mode == 4) light_intensity = kd * light_intensity;
+	if (mode == 5) light_intensity = light_intensity;
+	if (mode == 6) light_intensity = scatter;
 	fColor = vec4(light_intensity, 1);
 }
