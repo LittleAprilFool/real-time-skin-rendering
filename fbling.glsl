@@ -44,6 +44,7 @@ uniform sampler2D map_bump;
 uniform sampler2D map_depth;
 uniform sampler2D map_scattered;
 uniform sampler2D map_blur;
+uniform sampler2D map_beckmann;
 
 vec3 GetTBNTransformedVector(vec3 vector)
 {

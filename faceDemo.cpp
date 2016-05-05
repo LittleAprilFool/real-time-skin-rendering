@@ -85,14 +85,14 @@ void faceDemo::Loop() {
 		glfwSwapBuffers(window);
 		glfwSwapBuffers(light);
 	} while (running);
-};
+}
 
 void faceDemo::Render() {
 	glfwMakeContextCurrent(window);
 	scene.RenderScene();
 	glfwMakeContextCurrent(light);
 	scene.RenderLight();
-};
+}
 
 void faceDemo::Terminate() {
 	//destroy window

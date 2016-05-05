@@ -21,12 +21,12 @@ void HeadScene::RenderScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
 	RenderObject_(head, shader_blur_ID);
 
-	for (int i = 0; i < blur_time; i++) {
-		PrepareToBlur_(texture_blur_ID);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
-		RenderObject_(head, shader_blur_ID);
-	}
-
+//	for (int i = 0; i < blur_time; i++) {
+//		PrepareToBlur_(texture_blur_ID);
+//		glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
+//		RenderObject_(head, shader_blur_ID);
+//	}
+//
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderObject_(head, shader_bling_ID);
 }
@@ -82,6 +82,7 @@ void HeadScene::InitScene(int width, int height)
 	scene_width = width;
 	scene_height = height;
 
+	beckmann.Precompute(1, 1);
 	//load textures
 	LoadTexture(texture_kd_ID, "head-texture.jpg");
 	LoadTexture(texture_bump_ID,  "head-normal.jpg");
@@ -98,6 +99,7 @@ void HeadScene::InitScene(int width, int height)
 	fbo_depth_ID= CreateRenderTextureForDepth_(texture_depth_ID, scene_width, scene_height);
 	fbo_light_ID = CreateRenderTexture_(texture_light_ID, scene_width, scene_height);
 	fbo_blur_ID = CreateRenderTexture_(texture_blur_ID, scene_width, scene_height);
+	fbo_beckmann_ID = CreateRenderTexture_(texture_beckmann_ID, scene_width, scene_height);
 
 	LoadTexture(texture_toblur_ID, "toblur.jpg");
 
@@ -108,6 +110,9 @@ void HeadScene::InitScene(int width, int height)
 	cube = new Object;
 	cube->LoadMesh("cube.obj");
 	cube->BufferObjectData();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_beckmann_ID);
+	beckmann.Render();
 }
 
 void HeadScene::KeyboardFunction(int key, int action) 
@@ -246,7 +251,8 @@ void HeadScene::InitParameters_()
 	texture_depth_ID = GL_TEXTURE3;
 	texture_light_ID = GL_TEXTURE4;
 	texture_blur_ID = GL_TEXTURE5;
-	texture_toblur_ID = GL_TEXTURE6;
+	texture_beckmann_ID = GL_TEXTURE6;
+	texture_toblur_ID = GL_TEXTURE7;
 }
 
 
@@ -286,6 +292,7 @@ void HeadScene::TransferDataToShader_()
 	glUniform1i(loc_map_depth, texture_depth_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_scattered, texture_scattered_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_blur, texture_blur_ID - GL_TEXTURE0);
+	glUniform1i(loc_map_beckmann, texture_beckmann_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_toblur, texture_toblur_ID - GL_TEXTURE0);
 }
 
@@ -328,6 +335,7 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_map_scattered = glGetUniformLocation(shader_ID, "map_scattered");
 	loc_map_light = glGetUniformLocation(shader_ID, "map_light");
 	loc_map_blur = glGetUniformLocation(shader_ID, "map_blur");
+	loc_map_beckmann = glGetUniformLocation(shader_ID, "map_beckmann");
 	loc_map_toblur = glGetUniformLocation(shader_ID, "map_toblur");
 
 	loc_depth_model_matrix = glGetUniformLocation(shader_ID, "depth_model_matrix");

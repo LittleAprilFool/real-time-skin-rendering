@@ -1,5 +1,7 @@
 #pragma once
 #include "Scene.h"
+#include "Beckmann.h"
+
 class HeadScene :
 	public Scene
 {
@@ -37,6 +39,8 @@ private:
 	void UpdateModelMatrix_();
 	void PrepareToBlur_(GLuint tex);
 
+	Beckmann beckmann;
+
 	GLuint loc_model;
 	GLuint loc_view;
 	GLuint loc_projection;
@@ -61,6 +65,7 @@ private:
 	GLuint loc_map_light;
 	GLuint loc_map_blur;
 	GLuint loc_map_toblur;
+	GLuint loc_map_beckmann;
 
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -74,11 +79,13 @@ private:
 	GLuint texture_light_ID;
 	GLuint texture_blur_ID;
 	GLuint texture_toblur_ID;
+	GLuint texture_beckmann_ID;
 	
 	GLuint buffer_depth_ID;
 	GLuint fbo_depth_ID;
 	GLuint fbo_light_ID;
 	GLuint fbo_blur_ID;
+	GLuint fbo_beckmann_ID;
 	
 	mat4 projection_matrix;
 	mat4 model_matrix;
