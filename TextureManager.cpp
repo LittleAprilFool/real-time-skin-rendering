@@ -86,6 +86,7 @@ bool TextureManager::LoadTexture(const char* filename, const unsigned int texID,
 	}
 
 	//generate an OpenGL texture ID for this texture
+	std::cout << "LoadTexture" << std::endl;
 	std::cout << "texID:" << texID << std::endl;
 	glGenTextures(1, &gl_texID);
 	std::cout <<"gl texID:"<<gl_texID << std::endl;

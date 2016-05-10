@@ -1,7 +1,4 @@
 #version 400
-in vec4 position;
-in vec4 normal;
-in vec4 tangent;
 in vec2 texcoord;
 
 out vec4 fColor;

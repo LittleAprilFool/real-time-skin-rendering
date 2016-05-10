@@ -72,6 +72,7 @@ GLuint Scene::CreateRenderTextureForDepth_(int texture_unit, int width, int heig
 	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
+	std::cout << "CreateRenderTexture" << std::endl;
 	std::cout << "texture_unit"<<texture_unit<<"texture_ID"<<texture_ID << std::endl;
 
 	//bind to shader

@@ -11,6 +11,6 @@ void main()
 {
 	texcoord = vtexcoord;
 	texcoord = texcoord * 2 - 1;
-	gl_Position = vec4(texcoord, 1, 1);
+	gl_Position = vec4(vtexcoord, 1, 1);
 	texcoord = vtexcoord;
 }

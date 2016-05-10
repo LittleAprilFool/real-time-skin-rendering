@@ -15,7 +15,6 @@ public:
 	void MouseControl(int button, int action, int mods);
 	void CursorPosition(double xpos, double ypos);
 
-
 	float scale_factor;
 	vec3 rotate_factor;
 
@@ -69,6 +68,9 @@ private:
 	GLuint loc_map_blur;
 	GLuint loc_map_toblur;
 	GLuint loc_map_beckmann;
+	GLuint loc_map_add;
+	GLuint loc_map_toadd;
+	GLuint loc_map_afteradd;
 
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -83,12 +85,16 @@ private:
 	GLuint texture_blur_ID;
 	GLuint texture_toblur_ID;
 	GLuint texture_beckmann_ID;
+	GLuint texture_add_ID;
+	GLuint texture_toadd_ID;
+	GLuint texture_afteradd_ID;
 	
 	GLuint buffer_depth_ID;
 	GLuint fbo_depth_ID;
 	GLuint fbo_light_ID;
 	GLuint fbo_blur_ID;
 	GLuint fbo_beckmann_ID;
+	GLuint fbo_add_ID;
 	
 	mat4 projection_matrix;
 	mat4 model_matrix;
@@ -129,11 +135,13 @@ private:
 	ShaderProgram* shader_test;
 	ShaderProgram* shader_depth;
 	ShaderProgram* shader_blur;
+	ShaderProgram* shader_add;
 
 	GLuint shader_bling_ID;
 	GLuint shader_light_ID;
 	GLuint shader_test_ID;
 	GLuint shader_depth_ID;
 	GLuint shader_blur_ID;
+	GLuint shader_add_ID;
 };
 
