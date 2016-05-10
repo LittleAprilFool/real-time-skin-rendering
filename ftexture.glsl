@@ -23,6 +23,8 @@ struct MaterialInfo {
 uniform LightInfo Light;
 uniform MaterialInfo Material;
 
+uniform float mode;
+
 uniform vec3 eye_position;
 
 uniform mat4 depth_model_matrix;
@@ -31,6 +33,7 @@ uniform mat4 depth_projection_matrix;
 
 uniform sampler2D map_bump;
 uniform sampler2D map_kd;
+uniform sampler2D map_beckmann;
 
 vec3 GetTBNTransformedVector(vec3 vector)
 {
@@ -55,6 +58,30 @@ vec3 ComputeSpecularColor(vec3 light, vec3 eye, vec3 norm)
 	return Light.ls * Material.ks * factor;
 }
 
+float FresnelReflectance(vec3 H, vec3 V, float F0)
+{
+	float base = 1.0 - dot(H, V);
+	float exponential = pow(base, 5.0);
+	return exponential + F0 * (1 - exponential);
+}
+
+vec3 SkinSpecular(vec3 N, vec3 L, vec3 V, float m, float rho_s)
+{
+	float result = 0;
+	float ndotl = dot(N, L);
+	if(ndotl > 0)
+	{
+		vec3 h = L + V;
+		vec3 H = normalize(h);
+		float ndoth = dot(N, H);
+		float PH = pow(2 * texture(map_beckmann, vec2(ndoth,m)).x,10);
+		float F = FresnelReflectance(H, V, 0.028);
+		float frSpec = max(PH * F / dot(h, h), 0);
+		result = ndotl * rho_s * frSpec;
+	}
+	return vec3(result, result, result);
+}
+
 void main()
 {
    vec3 light = GetTBNTransformedVector(Light.position);
@@ -65,5 +92,8 @@ void main()
    vec3 ambient = Material.ka * Light.la;
    vec3 specular = ComputeSpecularColor(light, eye, norm);
 
+   vec3 skin_specular = SkinSpecular(norm, light, eye, 10, 20);
+
    fColor = vec4(diffuse + ambient + specular , 1);
+   if (mode == 6 || mode == 5) fColor = vec4(diffuse + ambient + skin_specular , 1);
 }
