@@ -95,5 +95,5 @@ void main()
    vec3 skin_specular = SkinSpecular(norm, light, eye, 10, 20);
 
    fColor = vec4(diffuse + ambient + specular , 1);
-   if (mode == 6 || mode == 5) fColor = vec4(diffuse + ambient + skin_specular , 1);
+   if (mode == 6 || mode == 5 || mode == 1) fColor = vec4(diffuse + ambient + skin_specular , 1);
 }

@@ -135,7 +135,6 @@ void main()
 	if (mode == 1) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
 	if (mode == 2) light_intensity = kd * light_intensity * visibility;
 	if (mode == 3) light_intensity = scatter;
-	if (mode == 4) light_intensity = kd * light_intensity;
-	if (mode == 6) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
+	if (mode == 6 || mode == 5 || mode == 4) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
 	fColor = vec4(light_intensity, 1);
 }

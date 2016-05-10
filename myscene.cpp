@@ -17,24 +17,28 @@ void HeadScene::RenderScene()
 	RenderObject_(head, shader_depth_ID);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
 	RenderObject_(head, shader_light_ID);
-	PrepareToBlur_(texture_light_ID);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
-	RenderObject_(head, shader_blur_ID);
-
-//	for (int i = 0; i < blur_time; i++) {
-//		PrepareToBlur_(texture_blur_ID);
-//		glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
-//		RenderObject_(head, shader_blur_ID);
-//	}
-//
+	CopyTexture_(texture_light_ID, texture_toblur_ID);
+	RenderBlur_(3, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderObject_(head, shader_bling_ID);
 }
 
-void HeadScene::PrepareToBlur_(GLuint tex)
+void HeadScene::RenderBlur_(int para, int rendered) {
+	gaussion_type = para;
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
+	blur_type = 1;
+	RenderObject_(head, shader_blur_ID);
+	CopyTexture_(texture_blur_ID, texture_toblur_ID);
+	if (rendered == 1) glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	else glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
+	blur_type = 2;
+	RenderObject_(head, shader_blur_ID);
+}
+
+void HeadScene::CopyTexture_(GLuint tex_src, GLuint tex_dst)
 {
-	GLuint tex1 = tex - GL_TEXTURE0 + 1;
-	GLuint tex2 = texture_toblur_ID - GL_TEXTURE0 + 1;
+	GLuint tex1 = tex_src - GL_TEXTURE0 + 1;
+	GLuint tex2 = tex_dst - GL_TEXTURE0 + 1;
 	glCopyImageSubData(tex1, GL_TEXTURE_2D, 0, 0, 0, 0,
 		tex2, GL_TEXTURE_2D, 0, 0, 0, 0,
 		scene_width, scene_height, 1);
@@ -45,18 +49,8 @@ void HeadScene::RenderLight()
 	//bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
 	RenderObject_(head, shader_light_ID);
-	PrepareToBlur_(texture_light_ID);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
-	RenderObject_(head, shader_blur_ID);
-
-	for (int i = 0; i < blur_time; i++) {
-		PrepareToBlur_(texture_blur_ID);
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
-		RenderObject_(head, shader_blur_ID);
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	RenderObject_(head, shader_blur_ID);
+	CopyTexture_(texture_light_ID, texture_toblur_ID);
+	RenderBlur_(3, 1);
 }
 
 void HeadScene::RenderObject_(Object* obj, GLuint shader_ID) 
@@ -148,6 +142,8 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_7 && action == GLFW_PRESS) shading_mode = 4;
 	if (key == GLFW_KEY_KP_8 && action == GLFW_PRESS) shading_mode = 5;
 	if (key == GLFW_KEY_KP_9 && action == GLFW_PRESS) shading_mode = 6;
+	if (key == GLFW_KEY_KP_DIVIDE && action == GLFW_PRESS) test_mode = 0;
+	if (key == GLFW_KEY_KP_MULTIPLY && action == GLFW_PRESS) test_mode = 1;
 	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
 }
@@ -215,6 +211,9 @@ void HeadScene::InitParameters_()
 	shading_mode = 1;
 	display_mode = 1;
 	blur_time = 5;
+	blur_type = 1;
+	gaussion_type = 0;
+	test_mode = 0;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;
@@ -270,6 +269,8 @@ void HeadScene::TransferDataToShader_()
 	glUniformMatrix4fv(loc_projection, 1, GL_TRUE, &projection_matrix[0][0]);
 
 	glUniform1f(loc_mode, shading_mode);
+	glUniform1i(loc_blur_type, blur_type);
+	glUniform1i(loc_gaussion_type, gaussion_type);
 
 	glUniform3f(loc_light_pos, light_position.x, light_position.y, light_position.z);
 	glUniform3f(loc_light_la, light_la.x, light_la.y, light_la.z);
@@ -328,6 +329,8 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	
 	loc_mode = glGetUniformLocation(shader_ID, "mode");
 	loc_eye_pos = glGetUniformLocation(shader_ID, "eye_position");
+	loc_blur_type = glGetUniformLocation(shader_ID, "blur_type");
+	loc_gaussion_type = glGetUniformLocation(shader_ID, "gaussion_type");
 
 	loc_map_kd = glGetUniformLocation(shader_ID, "map_kd");
 	loc_map_bump = glGetUniformLocation(shader_ID, "map_bump");

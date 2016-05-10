@@ -35,9 +35,10 @@ private:
 	void DrawArray_(int face_number);
 	void GetUniformLocations_(GLuint shader_ID);
 	void TransferDataToShader_();
+	void RenderBlur_(int para, int rendered);
 
 	void UpdateModelMatrix_();
-	void PrepareToBlur_(GLuint tex);
+	void CopyTexture_(GLuint tex_src, GLuint tex_dst);
 
 	Beckmann beckmann;
 
@@ -57,6 +58,8 @@ private:
 
 	GLuint loc_mode;
 	GLuint loc_eye_pos;
+	GLuint loc_blur_type;
+	GLuint loc_gaussion_type;
 	
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
@@ -103,6 +106,7 @@ private:
 	vec3 material_kd;
 	vec3 material_ks;
 	float material_shininess;
+	float test_mode;
 	
 	vec3 eye;
 	vec3 at;
@@ -117,6 +121,8 @@ private:
 	int scene_width;
 	int scene_height;
 	int blur_time;
+	int blur_type;
+	int gaussion_type;
 
 	ShaderProgram* shader_bling;
 	ShaderProgram* shader_light;
