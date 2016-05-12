@@ -96,12 +96,12 @@ void HeadScene::InitScene(int width, int height)
 	LoadTexture(texture_scattered_ID, "./Resources/head-scattered.jpg");
 
 	//load shaders
-	shader_bling_ID = LoadShader(shader_bling, "vbling.glsl", "fbling.glsl");
-	shader_light_ID = LoadShader(shader_light, "vtexture.glsl", "ftexture.glsl");
-	shader_test_ID = LoadShader(shader_test, "vtest.glsl", "ftest.glsl");
-	shader_blur_ID = LoadShader(shader_blur, "vblur.glsl", "fblur.glsl");
-	shader_depth_ID = LoadShader(shader_depth, "vshadow.glsl", "fshadow.glsl");
-	shader_add_ID = LoadShader(shader_add, "vadd.glsl", "fadd.glsl");
+	shader_bling_ID = LoadShader(shader_bling, "./Shader/vbling.glsl", "./Shader/fbling.glsl");
+	shader_light_ID = LoadShader(shader_light, "./Shader/vtexture.glsl", "./Shader/ftexture.glsl");
+	shader_test_ID = LoadShader(shader_test, "./Shader/vtest.glsl", "./Shader/ftest.glsl");
+	shader_blur_ID = LoadShader(shader_blur, "./Shader/vblur.glsl", "./Shader/fblur.glsl");
+	shader_depth_ID = LoadShader(shader_depth, "./Shader/vshadow.glsl", "./Shader/fshadow.glsl");
+	shader_add_ID = LoadShader(shader_add, "./Shader/vadd.glsl", "./Shader/fadd.glsl");
 
 	//create fbo
 	fbo_depth_ID= CreateRenderTextureForDepth_(texture_depth_ID, scene_width, scene_height);

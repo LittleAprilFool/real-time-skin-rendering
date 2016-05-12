@@ -65,7 +65,7 @@ void Beckmann::Init()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 
 	//compile shader
-	shader_beckmann_ID = LoadShader(shader_beckmann, "vbeckmann.glsl", "fbeckmann.glsl");
+	shader_beckmann_ID = LoadShader(shader_beckmann, "./Shader/vbeckmann.glsl", "./Shader/fbeckmann.glsl");
 }
 
 GLuint Beckmann::LoadShader(ShaderProgram* shader, const char* vertex_shader_filename, const char* fragment_shader_filename)
