@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "shader.h"
+#include "Shader.h"
 
 
 ShaderProgram::ShaderProgram()

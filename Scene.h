@@ -1,6 +1,6 @@
-#include "obj3d.h"
+#include "Object.h"
 #include "TextureManager.h"
-#include "shader.h"
+#include "Shader.h"
 #pragma once
 class Scene
 {

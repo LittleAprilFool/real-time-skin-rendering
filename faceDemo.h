@@ -1,13 +1,13 @@
 #pragma once
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <vector>
-#include "myscene.h"
+#include "HeadScene.h"
 //#include "TestScene.h"
 
-class faceDemo {
+class FaceDemo {
 public:
-	faceDemo();
-	~faceDemo();
+	FaceDemo();
+	~FaceDemo();
 	void Init();
 	void Render();
 	void Terminate();

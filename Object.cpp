@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "obj3d.h"
+#include "Object.h"
 
 Object::Object()
 {

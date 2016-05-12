@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "myscene.h"
+#include "HeadScene.h"
 
 HeadScene::HeadScene()
 {

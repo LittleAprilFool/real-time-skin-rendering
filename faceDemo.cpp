@@ -1,18 +1,18 @@
-// faceDemo.cpp : 定义控制台应用程序的入口点。
+// FaceDemo.cpp : 定义控制台应用程序的入口点。
 //
 
 #include "stdafx.h"
-#include "faceDemo.h"
+#include "FaceDemo.h"
 
 HeadScene scene;
 //TestScene scene;
-faceDemo::faceDemo() {
+FaceDemo::FaceDemo() {
 };
 
-faceDemo::~faceDemo() {
+FaceDemo::~FaceDemo() {
 };
 
-void faceDemo::Init() {
+void FaceDemo::Init() {
 	//init glfw
 	if (!glfwInit())
 	{
@@ -63,19 +63,19 @@ void faceDemo::Init() {
 	scene.InitScene(width, height);
 }
 
-void faceDemo::CursorPosition(GLFWwindow* window, double xpos, double ypos) {
+void FaceDemo::CursorPosition(GLFWwindow* window, double xpos, double ypos) {
 	scene.CursorPosition(xpos, ypos);
 }
 
-void faceDemo::MouseControl(GLFWwindow* window, int button, int action, int mods) {
+void FaceDemo::MouseControl(GLFWwindow* window, int button, int action, int mods) {
 	scene.MouseControl(button, action, mods);
 }
 
-void faceDemo::Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void FaceDemo::Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	scene.KeyboardFunction(key, action);
 }
 
-void faceDemo::Loop() {
+void FaceDemo::Loop() {
 	bool running = true;
 	do
 	{
@@ -87,14 +87,14 @@ void faceDemo::Loop() {
 	} while (running);
 }
 
-void faceDemo::Render() {
+void FaceDemo::Render() {
 	glfwMakeContextCurrent(window);
 	scene.RenderScene();
 	glfwMakeContextCurrent(light);
 	scene.RenderLight();
 }
 
-void faceDemo::Terminate() {
+void FaceDemo::Terminate() {
 	//destroy window
 	glfwDestroyWindow(window);
 	glfwDestroyWindow(light);
@@ -105,7 +105,7 @@ void faceDemo::Terminate() {
 
 int main()
 {
-	faceDemo* facedemo = new faceDemo();
+	FaceDemo* facedemo = new FaceDemo();
 	facedemo->Init();
 	facedemo->Loop();
     return 0;
