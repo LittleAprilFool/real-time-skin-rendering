@@ -91,9 +91,9 @@ void HeadScene::InitScene(int width, int height)
 
 	beckmann.Precompute(1, 1);
 	//load textures
-	LoadTexture(texture_kd_ID, "./Resources/head-texture.jpg");
-	LoadTexture(texture_bump_ID,  "./Resources/head-normal.jpg");
-	LoadTexture(texture_scattered_ID, "./Resources/head-scattered.jpg");
+	LoadTexture(texture_kd_ID, "head-texture.jpg");
+	LoadTexture(texture_bump_ID,  "head-normal.jpg");
+	LoadTexture(texture_scattered_ID, "head-scattered.jpg");
 
 	//load shaders
 	shader_bling_ID = LoadShader(shader_bling, "vbling.glsl", "fbling.glsl");
@@ -110,18 +110,17 @@ void HeadScene::InitScene(int width, int height)
 	fbo_beckmann_ID = CreateRenderTexture_(texture_beckmann_ID, scene_width, scene_height);
 	fbo_add_ID = CreateRenderTexture_(texture_afteradd_ID, scene_width, scene_height);
 
-	LoadTexture(texture_toblur_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_toadd_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_add_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_zero_ID, "./Resources/zero.jpg");
-
+	LoadTexture(texture_toblur_ID, "zero.jpg");
+	LoadTexture(texture_toadd_ID, "zero.jpg");
+	LoadTexture(texture_add_ID, "zero.jpg");
+	LoadTexture(texture_zero_ID, "zero.jpg");
 
 	head = new Object;
-	head->LoadMesh("./Resources/head.obj");
+	head->LoadMesh("head.obj");
 	head->BufferObjectData();
 
 	cube = new Object;
-	cube->LoadMesh("./Resources/cube.obj");
+	cube->LoadMesh("cube.obj");
 	cube->BufferObjectData();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_beckmann_ID);
