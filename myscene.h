@@ -35,6 +35,7 @@ private:
 	void GetUniformLocations_(GLuint shader_ID);
 	void TransferDataToShader_();
 	void RenderBlur_(int para, int rendered);
+	void GaussionSum_();
 
 	void UpdateModelMatrix_();
 	void CopyTexture_(GLuint tex_src, GLuint tex_dst);
@@ -88,6 +89,7 @@ private:
 	GLuint texture_add_ID;
 	GLuint texture_toadd_ID;
 	GLuint texture_afteradd_ID;
+	GLuint texture_zero_ID;
 	
 	GLuint buffer_depth_ID;
 	GLuint fbo_depth_ID;

@@ -14,7 +14,5 @@ void main()
 	blur_weight[2] = 0.21;
 	blur_weight[3] = 0.29;
 	
-	//fColor = texture2D(map_toadd, texcoord) * blur_weight[gaussion_type] 
-	//	+ texture2D(map_add, texcoord);	
-	fColor = vec4(1,0,0,1);
+	fColor = texture2D(map_toadd, texcoord) * blur_weight[gaussion_type] + texture2D(map_add, texcoord);
 }

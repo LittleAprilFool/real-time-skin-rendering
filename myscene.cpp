@@ -18,11 +18,7 @@ void HeadScene::RenderScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
 	RenderObject_(head, shader_light_ID);
 	CopyTexture_(texture_light_ID, texture_toblur_ID);
-	RenderBlur_(3, 0);
-	//CopyTexture_(texture_blur_ID, texture_toadd_ID);
-	//gaussion_type = 3;
-	//glBindFramebuffer(GL_FRAMEBUFFER, fbo_add_ID);
-	//RenderObject_(head, shader_add_ID);
+	GaussionSum_();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderObject_(head, shader_bling_ID);
 }
@@ -37,6 +33,17 @@ void HeadScene::RenderBlur_(int para, int rendered) {
 	else glBindFramebuffer(GL_FRAMEBUFFER, fbo_blur_ID);
 	blur_type = 2;
 	RenderObject_(head, shader_blur_ID);
+}
+
+void HeadScene::GaussionSum_() {
+	CopyTexture_(texture_zero_ID, texture_add_ID);
+	for (int i = 0; i < 4; i++) {
+		RenderBlur_(i, 0);
+		CopyTexture_(texture_blur_ID, texture_toadd_ID);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo_add_ID);
+		RenderObject_(head, shader_add_ID);
+		CopyTexture_(texture_afteradd_ID, texture_add_ID);
+	}
 }
 
 void HeadScene::CopyTexture_(GLuint tex_src, GLuint tex_dst)
@@ -54,12 +61,10 @@ void HeadScene::RenderLight()
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
 	RenderObject_(head, shader_light_ID);
 	CopyTexture_(texture_light_ID, texture_toblur_ID);
-	RenderBlur_(3, 1);
-	//CopyTexture_(texture_blur_ID, texture_toadd_ID);
-	//gaussion_type = 3;
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//RenderObject_(head, shader_add_ID);
-}
+	GaussionSum_();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderObject_(head, shader_test_ID);
+} 
 
 void HeadScene::RenderObject_(Object* obj, GLuint shader_ID) 
 {
@@ -105,9 +110,11 @@ void HeadScene::InitScene(int width, int height)
 	fbo_beckmann_ID = CreateRenderTexture_(texture_beckmann_ID, scene_width, scene_height);
 	fbo_add_ID = CreateRenderTexture_(texture_afteradd_ID, scene_width, scene_height);
 
-	LoadTexture(texture_toblur_ID, "toblur.jpg");
-	LoadTexture(texture_toadd_ID, "toblur.jpg");
-	LoadTexture(texture_add_ID, "toblur.jpg");
+	LoadTexture(texture_toblur_ID, "zero.jpg");
+	LoadTexture(texture_toadd_ID, "zero.jpg");
+	LoadTexture(texture_add_ID, "zero.jpg");
+	LoadTexture(texture_zero_ID, "zero.jpg");
+
 
 	head = new Object;
 	head->LoadMesh("head.obj");
@@ -267,6 +274,7 @@ void HeadScene::InitParameters_()
 	texture_toblur_ID = GL_TEXTURE8;
 	texture_toadd_ID = GL_TEXTURE9;
 	texture_add_ID = GL_TEXTURE10;
+	texture_zero_ID = GL_TEXTURE11;
 }
 
 
