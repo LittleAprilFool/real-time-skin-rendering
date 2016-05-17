@@ -18,7 +18,6 @@ public:
 	float scale_factor;
 	vec3 rotate_factor;
 
-	float translucency_value;
 	int shading_mode;
 	int display_mode;
 	vec3 light_position;
@@ -64,6 +63,7 @@ private:
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
 	GLuint loc_map_depth;
+	GLuint loc_map_thickness;
 	GLuint loc_map_scattered;
 	GLuint loc_map_light;
 	GLuint loc_map_blur;
@@ -81,6 +81,7 @@ private:
 	GLuint texture_kd_ID;
 	GLuint texture_bump_ID;
 	GLuint texture_depth_ID;
+	GLuint texture_thickness_ID;
 	GLuint texture_scattered_ID;
 	GLuint texture_light_ID;
 	GLuint texture_blur_ID;
@@ -97,6 +98,7 @@ private:
 	GLuint fbo_blur_ID;
 	GLuint fbo_beckmann_ID;
 	GLuint fbo_add_ID;
+	GLuint fbo_thickness_ID;
 	
 	mat4 projection_matrix;
 	mat4 model_matrix;
@@ -138,6 +140,7 @@ private:
 	ShaderProgram* shader_depth;
 	ShaderProgram* shader_blur;
 	ShaderProgram* shader_add;
+	ShaderProgram* shader_thickness;
 
 	GLuint shader_bling_ID;
 	GLuint shader_light_ID;
@@ -145,5 +148,6 @@ private:
 	GLuint shader_depth_ID;
 	GLuint shader_blur_ID;
 	GLuint shader_add_ID;
+	GLuint shader_thickness_ID;
 };
 

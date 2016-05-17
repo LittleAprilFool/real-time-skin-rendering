@@ -26,10 +26,11 @@ public:
 	std::vector<group> vgroup;
 	std::vector<group> tgroup;
 
-	void LoadMesh(char* filename);
+	void LoadMesh(char* filename, int type);
 	void BufferObjectData();
 	void Clear();
 	int face_number;
+	int face_type;
 
 	GLuint vao_handles;
 

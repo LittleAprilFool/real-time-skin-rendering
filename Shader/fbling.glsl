@@ -86,6 +86,7 @@ float GetDepth(vec3 light, vec3 norm)
 	{
 		vec2 pos = vec2(xpos + i * bias, ypos + j * bias);
 	    current_depth = texture(map_depth, pos).z;
+		//current_depth = texture(map_depth, texcoord).z;
 		if(current_depth < depth) depth = current_depth;
 	}
 	return depth;
@@ -133,8 +134,9 @@ void main()
 	vec3 light_intensity;
 	light_intensity = texture(map_afteradd, texcoord).xyz;
 	if (mode == 1) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
-	if (mode == 2) light_intensity = kd * light_intensity * visibility;
+	if (mode == 2) light_intensity = kd * light_intensity + scatter * 0.1;
 	if (mode == 3) light_intensity = scatter;
-	if (mode == 6 || mode == 5 || mode == 4) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
+	if (mode == 5) light_intensity = kd * light_intensity + scatter;
+	if (mode == 6 || mode == 4) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
 	fColor = vec4(light_intensity, 1);
 }

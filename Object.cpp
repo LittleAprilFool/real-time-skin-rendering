@@ -17,12 +17,13 @@ void Object::Clear() {
 	face_number = 0;
 }
 
-void Object::LoadMesh(char* filename) {
+void Object::LoadMesh(char* filename, int type) {
 	std::ifstream infile(filename);
 	std::string line;
 	group ivgroup;
 	group itgroup;
 	face_number = 0;
+	face_type = type;
 	//read obj file line by line
 	while (std::getline(infile, line))
 	{
@@ -63,13 +64,16 @@ void Object::LoadMesh(char* filename) {
 		{
 			face vface;
 			face tface;
-			for (int i = 0; i < 4; i++) {
+			int fnum = 4;
+			if (type == 0) fnum = 3;
+			for (int i = 0; i < fnum; i++) {
 				ss >> sub;
 				int pos = sub.find('/');
 				std::string left = sub.substr(0, pos);
 				std::string right = sub.substr(pos + 1);
 				int ileft = stoi(left) - 1;
-				int iright = stoi(right) - 1;
+				int iright = 0;
+				if(type != 0) iright = stoi(right) - 1;
 				vface.push_back(ileft);
 				tface.push_back(iright);
 			}
@@ -80,6 +84,8 @@ void Object::LoadMesh(char* filename) {
 	}
 	vgroup.push_back(ivgroup);
 	tgroup.push_back(itgroup);
+
+	if (texture.size() == 0) texture.push_back(vec2(0, 0));
 
 	ComputeVnormal();
 	ComputeTBN();
@@ -138,7 +144,7 @@ void Object::ComputeTBN() {
 		group vg = vgroup[i];
 		group tg = tgroup[i];
 		int nf = 0;
-		for (int j = 0; j != vg.size(); j++)
+		for (int j = 0; j != vg.size(); j ++)
 		{
 			face vfc = vg[j];
 			face tfc = tg[j];

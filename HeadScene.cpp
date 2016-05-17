@@ -15,12 +15,14 @@ void HeadScene::RenderScene()
 	UpdateModelMatrix_();
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_depth_ID);
 	RenderObject_(head, shader_depth_ID);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
-	RenderObject_(head, shader_light_ID);
-	CopyTexture_(texture_light_ID, texture_toblur_ID);
-	GaussionSum_();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	RenderObject_(head, shader_bling_ID);
+	RenderObject_(head, shader_thickness_ID);
+//	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
+//	RenderObject_(head, shader_light_ID);
+//	CopyTexture_(texture_light_ID, texture_toblur_ID);
+//	GaussionSum_();
+//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//	RenderObject_(head, shader_bling_ID);
 }
 
 void HeadScene::RenderBlur_(int para, int rendered) {
@@ -58,12 +60,12 @@ void HeadScene::CopyTexture_(GLuint tex_src, GLuint tex_dst)
 void HeadScene::RenderLight()
 {
 	//bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
-	RenderObject_(head, shader_light_ID);
-	CopyTexture_(texture_light_ID, texture_toblur_ID);
-	GaussionSum_();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	RenderObject_(head, shader_test_ID);
+	//glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
+	//RenderObject_(head, shader_light_ID);
+	//CopyTexture_(texture_light_ID, texture_toblur_ID);
+	//GaussionSum_();
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//RenderObject_(head, shader_test_ID);
 } 
 
 void HeadScene::RenderObject_(Object* obj, GLuint shader_ID) 
@@ -100,7 +102,8 @@ void HeadScene::InitScene(int width, int height)
 	shader_light_ID = LoadShader(shader_light, "./Shader/vtexture.glsl", "./Shader/ftexture.glsl");
 	shader_test_ID = LoadShader(shader_test, "./Shader/vtest.glsl", "./Shader/ftest.glsl");
 	shader_blur_ID = LoadShader(shader_blur, "./Shader/vblur.glsl", "./Shader/fblur.glsl");
-	shader_depth_ID = LoadShader(shader_depth, "./Shader/vshadow.glsl", "./Shader/fshadow.glsl");
+	shader_depth_ID = LoadShader(shader_depth, "./Shader/vdepth.glsl", "./Shader/fdepth.glsl");
+	shader_thickness_ID = LoadShader(shader_thickness, "./Shader/vthickness.glsl", "./Shader/fthickness.glsl");
 	shader_add_ID = LoadShader(shader_add, "./Shader/vadd.glsl", "./Shader/fadd.glsl");
 
 	//create fbo
@@ -109,6 +112,7 @@ void HeadScene::InitScene(int width, int height)
 	fbo_blur_ID = CreateRenderTexture_(texture_blur_ID, scene_width, scene_height);
 	fbo_beckmann_ID = CreateRenderTexture_(texture_beckmann_ID, scene_width, scene_height);
 	fbo_add_ID = CreateRenderTexture_(texture_afteradd_ID, scene_width, scene_height);
+	fbo_thickness_ID = CreateRenderTexture_(texture_thickness_ID, scene_width, scene_height);
 
 	LoadTexture(texture_toblur_ID, "./Resources/zero.jpg");
 	LoadTexture(texture_toadd_ID, "./Resources/zero.jpg");
@@ -117,11 +121,11 @@ void HeadScene::InitScene(int width, int height)
 
 
 	head = new Object;
-	head->LoadMesh("./Resources/head.obj");
+	head->LoadMesh("./Resources/head.obj", 1);
 	head->BufferObjectData();
 
 	cube = new Object;
-	cube->LoadMesh("./Resources/cube.obj");
+	cube->LoadMesh("./Resources/cube.obj", 1);
 	cube->BufferObjectData();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_beckmann_ID);
@@ -151,6 +155,21 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) blur_time = blur_time++;
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS) blur_time = blur_time--;
 	if (blur_time < 0) blur_time = 0;
+
+	if (key == GLFW_KEY_T && action == GLFW_PRESS) light_la = light_la * vec3(1.2);
+	if (key == GLFW_KEY_G && action == GLFW_PRESS) light_la = light_la * vec3(0.8);
+	if (key == GLFW_KEY_Y && action == GLFW_PRESS) light_ld = light_ld * vec3(1.2);
+	if (key == GLFW_KEY_H && action == GLFW_PRESS) light_ld = light_ld * vec3(0.8);
+	if (key == GLFW_KEY_U && action == GLFW_PRESS) light_ls = light_ls * vec3(1.2);
+	if (key == GLFW_KEY_J && action == GLFW_PRESS) light_ls = light_ls * vec3(0.8);
+	if (key == GLFW_KEY_I && action == GLFW_PRESS) material_ka = material_ka * vec3(1.2);
+	if (key == GLFW_KEY_K && action == GLFW_PRESS) material_ka = material_ka * vec3(0.8);
+	if (key == GLFW_KEY_O && action == GLFW_PRESS) material_kd = material_kd * vec3(1.2);
+	if (key == GLFW_KEY_L && action == GLFW_PRESS) material_kd = material_kd * vec3(0.8);
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) material_ks = material_ks * vec3(1.2);
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) material_ks = material_ks * vec3(0.8);
+	if (key == GLFW_KEY_3 && action == GLFW_PRESS) material_shininess = material_shininess * 1.2;
+	if (key == GLFW_KEY_4 && action == GLFW_PRESS) material_shininess = material_shininess * 0.8;
 
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
@@ -226,7 +245,6 @@ void HeadScene::InitParameters_()
 {
 	scale_factor = 1;
 	rotate_factor = vec3(0);
-	translucency_value = 0.5;
 	shading_mode = 1;
 	display_mode = 1;
 	blur_time = 5;
@@ -249,8 +267,8 @@ void HeadScene::InitParameters_()
 	model_matrix = mat4(1.0);
 	
 	light_position = vec3(0, 0, 1);
-	light_la = vec3(0.5, 0.5, 0.5);
-	light_ld = vec3(1, 1, 1);
+	light_la = vec3(0.8, 0.8, 0.8);
+	light_ld = vec3(1.2, 1.2, 1.2);
 	light_ls = vec3(0.3, 0.3, 0.3);
 
 	material_ka = vec3(0.5, 0.5, 0.5);

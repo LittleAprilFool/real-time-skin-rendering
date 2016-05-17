@@ -20,8 +20,8 @@ void FaceDemo::Init() {
 		exit(-1);
 	}
 
-	width = 800;
-	height = 800;
+	width = 1024;
+	height = 1024;
 
 	//create a glfw window
 	window = glfwCreateWindow(width, height, "faceDemo", NULL, NULL);

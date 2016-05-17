@@ -2,7 +2,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <vector>
 #include "HeadScene.h"
-//#include "TestScene.h"
+//#include "WaxScene.h"
 
 class FaceDemo {
 public:
