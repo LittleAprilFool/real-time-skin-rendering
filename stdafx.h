@@ -15,6 +15,8 @@
 // TODO:  在此处引用程序需要的其他头文件
 #include <GL/glew.h>
 #include <GL/GL.h>
+//#include <freeglut\freeglut.h>
+//#include <freeglut\glut.h>
 #include <GLFW/glfw3.h>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

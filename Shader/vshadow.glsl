@@ -33,7 +33,7 @@ vec4 GetShadowCoord()
 
 void main()
 {
-	position = model_matrix * vPosition;
+	position = vPosition;
 	texcoord = vTexcoord;
 	shadowcoord = GetShadowCoord();
 	gl_Position = vec4(texcoord * 2 - 1, 1, 1);

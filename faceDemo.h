@@ -20,4 +20,7 @@ private:
 	GLFWwindow* light;
 	int width;
 	int height;
+	int frame;
+	int time;
+	int timebase;
 };

@@ -37,7 +37,7 @@ GLuint Scene::CreateRenderTexture_(int texture_unit, int width, int height)
 
 	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
-	std::cout << "texture_uint " << texture_unit << " texture_ID " << texture_ID << std::endl;
+	//std::cout << "texture_uint " << texture_unit << " texture_ID " << texture_ID << std::endl;
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
 
 	//bind to shader
@@ -72,8 +72,8 @@ GLuint Scene::CreateRenderTextureForDepth_(int texture_unit, int width, int heig
 	GLuint texture_ID;
 	glGenTextures(1, &texture_ID);
 	glBindTexture(GL_TEXTURE_2D, texture_ID);
-	std::cout << "CreateRenderTexture" << std::endl;
-	std::cout << "texture_unit"<<texture_unit<<"texture_ID"<<texture_ID << std::endl;
+	//std::cout << "CreateRenderTexture" << std::endl;
+	//std::cout << "texture_unit"<<texture_unit<<"texture_ID"<<texture_ID << std::endl;
 
 	//bind to shader
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);

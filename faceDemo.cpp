@@ -12,7 +12,13 @@ FaceDemo::FaceDemo() {
 FaceDemo::~FaceDemo() {
 };
 
-void FaceDemo::Init() {
+void FaceDemo::Init() {	
+	//char fakeParam[] = "fake";
+	//char *fakeargv[] = { fakeParam, NULL };
+	//int fakeargc = 1;
+
+	//glutInit(&fakeargc, fakeargv);
+
 	//init glfw
 	if (!glfwInit())
 	{
@@ -22,6 +28,9 @@ void FaceDemo::Init() {
 
 	width = 1024;
 	height = 1024;
+	frame = 0;
+	time = 0;
+	timebase = 0;
 
 	//create a glfw window
 	window = glfwCreateWindow(width, height, "faceDemo", NULL, NULL);
@@ -84,14 +93,22 @@ void FaceDemo::Loop() {
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 		glfwSwapBuffers(light);
+		frame++;
+		
+		time = glfwGetTime();
+		if (time - timebase >= 1) {
+			std::cout << "FPS:" << frame / (time - timebase) << std::endl;
+			timebase = time;
+			frame = 0;
+		}
 	} while (running);
 }
 
 void FaceDemo::Render() {
 	glfwMakeContextCurrent(window);
 	scene.RenderScene();
-	glfwMakeContextCurrent(light);
-	scene.RenderLight();
+//	glfwMakeContextCurrent(light);
+//	scene.RenderLight();
 }
 
 void FaceDemo::Terminate() {

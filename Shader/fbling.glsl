@@ -44,7 +44,9 @@ uniform sampler2D map_bump;
 uniform sampler2D map_depth;
 uniform sampler2D map_scattered;
 uniform sampler2D map_blur;
-uniform sampler2D map_afteradd;
+uniform sampler2D map_light;
+uniform sampler2D map_shadow;
+uniform sampler2D map_thickness;
 
 vec3 GetTBNTransformedVector(vec3 vector)
 {
@@ -64,7 +66,7 @@ float GetVisibility(vec3 light, vec3 norm, float depth)
 	bias = clamp(bias, 0.0f, 0.01f);
 	float factor = 1;
 	if(depth != 0) factor = (shadowcoord.z-bias) / depth;
-	if( factor > 1) visibility = 1 / factor;
+	if(factor > 1) visibility = 1 / factor;
 	visibility = visibility - 0.5;
 	visibility = visibility * 2;
 	if(visibility < 0) visibility = 0;
@@ -131,12 +133,12 @@ void main()
 
 	vec3 scatter = ComputeScatterColor(thickness);
 
-	vec3 light_intensity;
-	light_intensity = texture(map_afteradd, texcoord).xyz;
-	if (mode == 1) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
-	if (mode == 2) light_intensity = kd * light_intensity + scatter * 0.1;
-	if (mode == 3) light_intensity = scatter;
-	if (mode == 5) light_intensity = kd * light_intensity + scatter;
-	if (mode == 6 || mode == 4) light_intensity = kd * light_intensity * visibility + scatter * 0.1;
+	vec3 light_intensity = vec3(1,0,0);
+	if (mode == 1) light_intensity = texture(map_light, texcoord).xyz;
+	if (mode == 2) light_intensity = texture(map_shadow, texcoord).xyz;
+	if (mode == 3) light_intensity = texture(map_thickness, texcoord).xyz;
+	if (mode == 4) light_intensity = kd * texture(map_light, texcoord).xyz;
+	if (mode == 5) light_intensity = kd * texture(map_light, texcoord).xyz * texture(map_shadow, texcoord).x;
+	if (mode == 6) light_intensity = kd * texture(map_light, texcoord).xyz * texture(map_shadow, texcoord).x + texture(map_thickness, texcoord).xyz * 0.1; 
 	fColor = vec4(light_intensity, 1);
 }

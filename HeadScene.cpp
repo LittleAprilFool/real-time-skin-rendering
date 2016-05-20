@@ -12,17 +12,37 @@ HeadScene::~HeadScene()
 
 void HeadScene::RenderScene() 
 {
+	if(rotate_on) rotate_factor.y += 0.02;
+
 	UpdateModelMatrix_();
+	//depth
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_depth_ID);
 	RenderObject_(head, shader_depth_ID);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//light effect
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
+	RenderObject_(head, shader_light_ID);
+	CopyTexture_(texture_light_ID, texture_toblur_ID);
+	GaussionSum_(0);
+	CopyTexture_(texture_afteradd_ID, texture_light_ID);
+
+	//shadow
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_ID);
+	RenderObject_(head, shader_shadow_ID);
+	CopyTexture_(texture_shadow_ID, texture_toblur_ID);
+	GaussionSum_(1);
+	CopyTexture_(texture_afteradd_ID, texture_shadow_ID);
+
+	//scattered
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_thickness_ID);
 	RenderObject_(head, shader_thickness_ID);
-//	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
-//	RenderObject_(head, shader_light_ID);
-//	CopyTexture_(texture_light_ID, texture_toblur_ID);
-//	GaussionSum_();
-//	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//	RenderObject_(head, shader_bling_ID);
+	CopyTexture_(texture_thickness_ID, texture_toblur_ID);
+	GaussionSum_(1);
+	CopyTexture_(texture_afteradd_ID, texture_thickness_ID);
+
+	//put together
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderObject_(head, shader_bling_ID);
 }
 
 void HeadScene::RenderBlur_(int para, int rendered) {
@@ -37,14 +57,31 @@ void HeadScene::RenderBlur_(int para, int rendered) {
 	RenderObject_(head, shader_blur_ID);
 }
 
-void HeadScene::GaussionSum_() {
+void HeadScene::GaussionSum_(int method) {
 	CopyTexture_(texture_zero_ID, texture_add_ID);
-	for (int i = 0; i < 4; i++) {
-		RenderBlur_(i, 0);
+	//method0 blur for skin
+	if (method == 0) {
+		for (int i = 0; i < 4; i++) {
+			RenderBlur_(i, 0);
+			toadd_weight = blur_weight[i];
+			CopyTexture_(texture_blur_ID, texture_toadd_ID);
+			glBindFramebuffer(GL_FRAMEBUFFER, fbo_add_ID);
+			RenderObject_(head, shader_add_ID);
+			CopyTexture_(texture_afteradd_ID, texture_add_ID);
+		}
+	}
+	//method1 only blur once
+	if (method == 1) {
+		RenderBlur_(4, 0);
+		toadd_weight = blur_weight[4];
 		CopyTexture_(texture_blur_ID, texture_toadd_ID);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo_add_ID);
 		RenderObject_(head, shader_add_ID);
 		CopyTexture_(texture_afteradd_ID, texture_add_ID);
+	}
+	//method2
+	if (method == 2) {
+		//to do
 	}
 }
 
@@ -59,13 +96,33 @@ void HeadScene::CopyTexture_(GLuint tex_src, GLuint tex_dst)
 
 void HeadScene::RenderLight()
 {
+	//depth
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_depth_ID);
+	RenderObject_(head, shader_depth_ID);
+
 	//bind fbo
-	//glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
-	//RenderObject_(head, shader_light_ID);
-	//CopyTexture_(texture_light_ID, texture_toblur_ID);
-	//GaussionSum_();
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//RenderObject_(head, shader_test_ID);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
+	RenderObject_(head, shader_light_ID);
+	CopyTexture_(texture_light_ID, texture_toblur_ID);
+	GaussionSum_(0);
+	CopyTexture_(texture_afteradd_ID, texture_light_ID);
+	
+	//shadow
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_ID);
+	RenderObject_(head, shader_shadow_ID);
+	CopyTexture_(texture_shadow_ID, texture_toblur_ID);
+	GaussionSum_(1);
+	CopyTexture_(texture_afteradd_ID, texture_shadow_ID);
+	
+	//scattered
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_thickness_ID);
+	RenderObject_(head, shader_thickness_ID);
+	CopyTexture_(texture_thickness_ID, texture_toblur_ID);
+	GaussionSum_(1);
+	CopyTexture_(texture_afteradd_ID, texture_thickness_ID);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	RenderObject_(head, shader_test_ID);
 } 
 
 void HeadScene::RenderObject_(Object* obj, GLuint shader_ID) 
@@ -105,6 +162,7 @@ void HeadScene::InitScene(int width, int height)
 	shader_depth_ID = LoadShader(shader_depth, "./Shader/vdepth.glsl", "./Shader/fdepth.glsl");
 	shader_thickness_ID = LoadShader(shader_thickness, "./Shader/vthickness.glsl", "./Shader/fthickness.glsl");
 	shader_add_ID = LoadShader(shader_add, "./Shader/vadd.glsl", "./Shader/fadd.glsl");
+	shader_shadow_ID = LoadShader(shader_shadow, "./Shader/vshadow.glsl", "./Shader/fshadow.glsl");
 
 	//create fbo
 	fbo_depth_ID= CreateRenderTextureForDepth_(texture_depth_ID, scene_width, scene_height);
@@ -113,6 +171,7 @@ void HeadScene::InitScene(int width, int height)
 	fbo_beckmann_ID = CreateRenderTexture_(texture_beckmann_ID, scene_width, scene_height);
 	fbo_add_ID = CreateRenderTexture_(texture_afteradd_ID, scene_width, scene_height);
 	fbo_thickness_ID = CreateRenderTexture_(texture_thickness_ID, scene_width, scene_height);
+	fbo_shadow_ID = CreateRenderTexture_(texture_shadow_ID, scene_width, scene_height);
 
 	LoadTexture(texture_toblur_ID, "./Resources/zero.jpg");
 	LoadTexture(texture_toadd_ID, "./Resources/zero.jpg");
@@ -170,7 +229,8 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) material_ks = material_ks * vec3(0.8);
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) material_shininess = material_shininess * 1.2;
 	if (key == GLFW_KEY_4 && action == GLFW_PRESS) material_shininess = material_shininess * 0.8;
-
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) rotate_on = !rotate_on;
+	
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
 	if (key == GLFW_KEY_KP_3 && action == GLFW_PRESS) display_mode = 3;
@@ -190,11 +250,13 @@ void HeadScene::MouseControl(int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
+		rotate_on = false;
 		mouse_press_left = true;
 		mouse_position_o = mouse_position;
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
+		rotate_on = false;
 		mouse_press_left = false;
 		mouse_position_o = vec2(0, 0);
 	}
@@ -251,6 +313,8 @@ void HeadScene::InitParameters_()
 	blur_type = 1;
 	gaussion_type = 0;
 	test_mode = 0;
+	toadd_weight = 0;
+	rotate_on = true;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;
@@ -289,10 +353,12 @@ void HeadScene::InitParameters_()
 	texture_blur_ID = GL_TEXTURE5;
 	texture_beckmann_ID = GL_TEXTURE6;
 	texture_afteradd_ID = GL_TEXTURE7;
-	texture_toblur_ID = GL_TEXTURE8;
-	texture_toadd_ID = GL_TEXTURE9;
-	texture_add_ID = GL_TEXTURE10;
-	texture_zero_ID = GL_TEXTURE11;
+	texture_thickness_ID = GL_TEXTURE8;
+	texture_shadow_ID = GL_TEXTURE9;
+	texture_toblur_ID = GL_TEXTURE10;
+	texture_toadd_ID = GL_TEXTURE11;
+	texture_add_ID = GL_TEXTURE12;
+	texture_zero_ID = GL_TEXTURE13;
 }
 
 
@@ -312,6 +378,7 @@ void HeadScene::TransferDataToShader_()
 	glUniform1f(loc_mode, shading_mode);
 	glUniform1i(loc_blur_type, blur_type);
 	glUniform1i(loc_gaussion_type, gaussion_type);
+	glUniform1f(loc_toadd_weight, toadd_weight);
 
 	glUniform3f(loc_light_pos, light_position.x, light_position.y, light_position.z);
 	glUniform3f(loc_light_la, light_la.x, light_la.y, light_la.z);
@@ -339,6 +406,8 @@ void HeadScene::TransferDataToShader_()
 	glUniform1i(loc_map_add, texture_add_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_toadd, texture_toadd_ID - GL_TEXTURE0);
 	glUniform1i(loc_map_afteradd, texture_afteradd_ID - GL_TEXTURE0);
+	glUniform1i(loc_map_thickness, texture_thickness_ID - GL_TEXTURE0);
+	glUniform1i(loc_map_shadow, texture_shadow_ID - GL_TEXTURE0);
 }
 
 void HeadScene::UpdateModelMatrix_() 
@@ -375,6 +444,7 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_eye_pos = glGetUniformLocation(shader_ID, "eye_position");
 	loc_blur_type = glGetUniformLocation(shader_ID, "blur_type");
 	loc_gaussion_type = glGetUniformLocation(shader_ID, "gaussion_type");
+	loc_toadd_weight = glGetUniformLocation(shader_ID, "toadd_weight");
 
 	loc_map_kd = glGetUniformLocation(shader_ID, "map_kd");
 	loc_map_bump = glGetUniformLocation(shader_ID, "map_bump");
@@ -387,6 +457,8 @@ void HeadScene::GetUniformLocations_(GLuint shader_ID)
 	loc_map_add = glGetUniformLocation(shader_ID, "map_add");
 	loc_map_toadd = glGetUniformLocation(shader_ID, "map_toadd");
 	loc_map_afteradd = glGetUniformLocation(shader_ID, "map_afteradd");
+	loc_map_thickness = glGetUniformLocation(shader_ID, "map_thickness");
+	loc_map_shadow = glGetUniformLocation(shader_ID, "map_shadow");
 
 	loc_depth_model_matrix = glGetUniformLocation(shader_ID, "depth_model_matrix");
 	loc_depth_view_matrix = glGetUniformLocation(shader_ID, "depth_view_matrix");

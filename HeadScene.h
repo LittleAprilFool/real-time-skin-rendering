@@ -34,7 +34,7 @@ private:
 	void GetUniformLocations_(GLuint shader_ID);
 	void TransferDataToShader_();
 	void RenderBlur_(int para, int rendered);
-	void GaussionSum_();
+	void GaussionSum_(int method);
 
 	void UpdateModelMatrix_();
 	void CopyTexture_(GLuint tex_src, GLuint tex_dst);
@@ -59,6 +59,7 @@ private:
 	GLuint loc_eye_pos;
 	GLuint loc_blur_type;
 	GLuint loc_gaussion_type;
+	GLuint loc_toadd_weight;
 	
 	GLuint loc_map_kd;
 	GLuint loc_map_bump;
@@ -72,6 +73,7 @@ private:
 	GLuint loc_map_add;
 	GLuint loc_map_toadd;
 	GLuint loc_map_afteradd;
+	GLuint loc_map_shadow;
 
 	GLuint loc_depth_model_matrix;
 	GLuint loc_depth_view_matrix;
@@ -91,6 +93,7 @@ private:
 	GLuint texture_toadd_ID;
 	GLuint texture_afteradd_ID;
 	GLuint texture_zero_ID;
+	GLuint texture_shadow_ID;
 	
 	GLuint buffer_depth_ID;
 	GLuint fbo_depth_ID;
@@ -99,6 +102,7 @@ private:
 	GLuint fbo_beckmann_ID;
 	GLuint fbo_add_ID;
 	GLuint fbo_thickness_ID;
+	GLuint fbo_shadow_ID;
 	
 	mat4 projection_matrix;
 	mat4 model_matrix;
@@ -132,7 +136,9 @@ private:
 	int scene_height;
 	int blur_time;
 	int blur_type;
+	bool rotate_on;
 	int gaussion_type;
+	float toadd_weight;
 
 	ShaderProgram* shader_bling;
 	ShaderProgram* shader_light;
@@ -141,6 +147,7 @@ private:
 	ShaderProgram* shader_blur;
 	ShaderProgram* shader_add;
 	ShaderProgram* shader_thickness;
+	ShaderProgram* shader_shadow;
 
 	GLuint shader_bling_ID;
 	GLuint shader_light_ID;
@@ -149,5 +156,8 @@ private:
 	GLuint shader_blur_ID;
 	GLuint shader_add_ID;
 	GLuint shader_thickness_ID;
+	GLuint shader_shadow_ID;
+
+	const double blur_weight[5] = { 0.07, 0.18, 0.21, 0.29, 1 };
 };
 

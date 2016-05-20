@@ -15,7 +15,7 @@ uniform float mode;
 
 void main()
 {
-	float gaussion_para[60];
+	float gaussion_para[75];
 	int offset = gaussion_type * 15;
 	//gaussion_type = 0, sigma = 0.036
 	gaussion_para[0] = 0;
@@ -53,7 +53,7 @@ void main()
 
 	//gaussion_type = 2, sigma = 0.91
 	gaussion_para[2 * 15 + 0] = 0;
-	gaussion_para[2* 15 + 1] = 0;
+	gaussion_para[2 * 15 + 1] = 0;
 	gaussion_para[2 * 15 + 2] = 0;
 	gaussion_para[2 * 15 + 3] = 0.00006;
 	gaussion_para[2 * 15 + 4] = 0.002945;
@@ -85,6 +85,22 @@ void main()
 	gaussion_para[3 * 15 + 13] = 0.055112;
 	gaussion_para[3 * 15 + 14] = 0.048277;
 
+	gaussion_para[4 * 15 + 0] = 0.000489;
+	gaussion_para[4 * 15 + 1] = 0.002403;
+	gaussion_para[4 * 15 + 2] = 0.009246;
+	gaussion_para[4 * 15 + 3] = 0.027840;
+	gaussion_para[4 * 15 + 4] = 0.065602;
+	gaussion_para[4 * 15 + 5] = 0.120999;
+	gaussion_para[4 * 15 + 6] = 0.174697;
+	gaussion_para[4 * 15 + 7] = 0.197448;
+	gaussion_para[4 * 15 + 8] = 0.174697;
+	gaussion_para[4 * 15 + 9] = 0.120999;
+	gaussion_para[4 * 15 + 10] = 0.065602;
+	gaussion_para[4 * 15 + 11] = 0.027840;
+	gaussion_para[4 * 15 + 12] = 0.009246;
+	gaussion_para[4 * 15 + 13] = 0.002403;
+	gaussion_para[4 * 15 + 14] = 0.000489;
+
 	float bias = 1.0 / 800;
 	vec2 tex_base = vec2(0,0);
 	if(blur_type == 1) tex_base = vec2(0, 1);
@@ -105,7 +121,7 @@ void main()
 	}
 
 	if(is_margin) blur_color = texture2D(map_toblur, tex[7]);
-	if(mode == 6) blur_color = texture2D(map_toblur, tex[7]);
+	//if(mode == 6) blur_color = texture2D(map_toblur, tex[7]);
 	blur_color.a = 1;
 	fColor = blur_color;
 }
