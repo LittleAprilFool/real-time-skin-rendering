@@ -12,7 +12,7 @@ HeadScene::~HeadScene()
 
 void HeadScene::RenderScene() 
 {
-	if(rotate_on) rotate_factor.y += 0.02;
+	if(head_rotate_on) rotate_factor.y += 0.01;
 
 	UpdateModelMatrix_();
 	//depth
@@ -152,7 +152,7 @@ void HeadScene::InitScene(int width, int height)
 	//load textures
 	LoadTexture(texture_kd_ID, "./Resources/head-texture.jpg");
 	LoadTexture(texture_bump_ID,  "./Resources/head-normal.jpg");
-	LoadTexture(texture_scattered_ID, "./Resources/head-scattered.jpg");
+	LoadTexture(texture_scattered_ID, "./Resources/head-scattered2.jpg");
 
 	//load shaders
 	shader_bling_ID = LoadShader(shader_bling, "./Shader/vbling.glsl", "./Shader/fbling.glsl");
@@ -173,10 +173,10 @@ void HeadScene::InitScene(int width, int height)
 	fbo_thickness_ID = CreateRenderTexture_(texture_thickness_ID, scene_width, scene_height);
 	fbo_shadow_ID = CreateRenderTexture_(texture_shadow_ID, scene_width, scene_height);
 
-	LoadTexture(texture_toblur_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_toadd_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_add_ID, "./Resources/zero.jpg");
-	LoadTexture(texture_zero_ID, "./Resources/zero.jpg");
+	LoadTexture(texture_toblur_ID, "./Resources/zero-800.jpg");
+	LoadTexture(texture_toadd_ID, "./Resources/zero-800.jpg");
+	LoadTexture(texture_add_ID, "./Resources/zero-800.jpg");
+	LoadTexture(texture_zero_ID, "./Resources/zero-800.jpg");
 
 
 	head = new Object;
@@ -224,12 +224,19 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_I && action == GLFW_PRESS) material_ka = material_ka * vec3(1.2);
 	if (key == GLFW_KEY_K && action == GLFW_PRESS) material_ka = material_ka * vec3(0.8);
 	if (key == GLFW_KEY_O && action == GLFW_PRESS) material_kd = material_kd * vec3(1.2);
-	if (key == GLFW_KEY_L && action == GLFW_PRESS) material_kd = material_kd * vec3(0.8);
+	if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+		light_rotate_on = !light_rotate_on;
+		head_rotate_on = false;
+	}
+
 	if (key == GLFW_KEY_1 && action == GLFW_PRESS) material_ks = material_ks * vec3(1.2);
 	if (key == GLFW_KEY_2 && action == GLFW_PRESS) material_ks = material_ks * vec3(0.8);
 	if (key == GLFW_KEY_3 && action == GLFW_PRESS) material_shininess = material_shininess * 1.2;
 	if (key == GLFW_KEY_4 && action == GLFW_PRESS) material_shininess = material_shininess * 0.8;
-	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) rotate_on = !rotate_on;
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		head_rotate_on = !head_rotate_on;
+		light_rotate_on = false;
+	}
 	
 	if (key == GLFW_KEY_KP_1 && action == GLFW_PRESS) display_mode = 1;
 	if (key == GLFW_KEY_KP_2 && action == GLFW_PRESS) display_mode = 2;
@@ -250,13 +257,15 @@ void HeadScene::MouseControl(int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
-		rotate_on = false;
+		head_rotate_on = false;
+		light_rotate_on = false;
 		mouse_press_left = true;
 		mouse_position_o = mouse_position;
 	}
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
-		rotate_on = false;
+		head_rotate_on = false;
+		light_rotate_on = false;
 		mouse_press_left = false;
 		mouse_position_o = vec2(0, 0);
 	}
@@ -300,7 +309,7 @@ void HeadScene::InitGLFunc_()
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 void HeadScene::InitParameters_()
@@ -314,7 +323,8 @@ void HeadScene::InitParameters_()
 	gaussion_type = 0;
 	test_mode = 0;
 	toadd_weight = 0;
-	rotate_on = true;
+	head_rotate_on = false;
+	light_rotate_on = true;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;

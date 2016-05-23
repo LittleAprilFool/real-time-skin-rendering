@@ -13,12 +13,6 @@ FaceDemo::~FaceDemo() {
 };
 
 void FaceDemo::Init() {	
-	//char fakeParam[] = "fake";
-	//char *fakeargv[] = { fakeParam, NULL };
-	//int fakeargc = 1;
-
-	//glutInit(&fakeargc, fakeargv);
-
 	//init glfw
 	if (!glfwInit())
 	{
@@ -26,8 +20,8 @@ void FaceDemo::Init() {
 		exit(-1);
 	}
 
-	width = 1024;
-	height = 1024;
+	width = 800;
+	height = 800;
 	frame = 0;
 	time = 0;
 	timebase = 0;
@@ -49,27 +43,27 @@ void FaceDemo::Init() {
 	}
 
 	//create a window for light
-	light = glfwCreateWindow(width, height, "lightView", NULL, NULL);
+	//light = glfwCreateWindow(width, height, "lightView", NULL, NULL);
 
-	if (!light)
-	{
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}
+	//if (!light)
+	//{
+	//	glfwTerminate();
+	//	exit(EXIT_FAILURE);
+	//}
 
 	//mouse&keyboard function
 	glfwSetKeyCallback(window, Keyboard);
 	glfwSetMouseButtonCallback(window, MouseControl);
 	glfwSetCursorPosCallback(window, CursorPosition);
 
-	glfwSetKeyCallback(light, Keyboard);
-	glfwSetMouseButtonCallback(light, MouseControl);
+	//glfwSetKeyCallback(light, Keyboard);
+	//glfwSetMouseButtonCallback(light, MouseControl);
 
 	glfwMakeContextCurrent(window);
 	scene.InitScene(width, height);
 
-	glfwMakeContextCurrent(light);
-	scene.InitScene(width, height);
+	//glfwMakeContextCurrent(light);
+	//scene.InitScene(width, height);
 }
 
 void FaceDemo::CursorPosition(GLFWwindow* window, double xpos, double ypos) {
@@ -92,7 +86,7 @@ void FaceDemo::Loop() {
 		running &= (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_RELEASE);
 		glfwPollEvents();
 		glfwSwapBuffers(window);
-		glfwSwapBuffers(light);
+		//glfwSwapBuffers(light);
 		frame++;
 		
 		time = glfwGetTime();
@@ -114,7 +108,7 @@ void FaceDemo::Render() {
 void FaceDemo::Terminate() {
 	//destroy window
 	glfwDestroyWindow(window);
-	glfwDestroyWindow(light);
+	//glfwDestroyWindow(light);
 	
 	//terminate glfw
 	glfwTerminate();
@@ -125,5 +119,6 @@ int main()
 	FaceDemo* facedemo = new FaceDemo();
 	facedemo->Init();
 	facedemo->Loop();
-    return 0;
+
+	return 0;
 }

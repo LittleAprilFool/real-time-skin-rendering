@@ -136,7 +136,8 @@ private:
 	int scene_height;
 	int blur_time;
 	int blur_type;
-	bool rotate_on;
+	bool head_rotate_on;
+	bool light_rotate_on;
 	int gaussion_type;
 	float toadd_weight;
 

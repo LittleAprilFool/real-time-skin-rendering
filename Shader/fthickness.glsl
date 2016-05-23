@@ -4,6 +4,7 @@ in vec4 shadowcoord;
 out vec4 fColor;
 
 uniform sampler2D map_depth;
+uniform sampler2D map_scattered;
 
 void main()
 {
@@ -29,5 +30,6 @@ void main()
 	if(value < 0.5) value = 1 - value;
 	if(value > 1) value = 1;
 	value = 1 - value;
+	//fColor = texture(map_scattered, vec2(thickness * 20, 0));
 	fColor = vec4(value, 0, 0, 1);
 }
