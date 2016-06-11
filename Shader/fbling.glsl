@@ -48,6 +48,7 @@ void main()
 
 	vec4 light_intensity = vec4(1,0,0,1);
 
+	if (mode == 7) light_intensity = kd;
 	if (mode == 6) light_intensity = light;
 	if (mode == 5) light_intensity = shadow;
 	if (mode == 4) light_intensity = thickness;

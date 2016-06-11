@@ -43,27 +43,27 @@ void FaceDemo::Init() {
 	}
 
 	//create a window for light
-	//light = glfwCreateWindow(width, height, "lightView", NULL, NULL);
+//	light = glfwCreateWindow(width, height, "lightView", NULL, NULL);
 
-	//if (!light)
-	//{
-	//	glfwTerminate();
-	//	exit(EXIT_FAILURE);
-	//}
+//	if (!light)
+//	{
+//		glfwTerminate();
+//		exit(EXIT_FAILURE);
+//	}
 
 	//mouse&keyboard function
 	glfwSetKeyCallback(window, Keyboard);
 	glfwSetMouseButtonCallback(window, MouseControl);
 	glfwSetCursorPosCallback(window, CursorPosition);
 
-	//glfwSetKeyCallback(light, Keyboard);
-	//glfwSetMouseButtonCallback(light, MouseControl);
+//	glfwSetKeyCallback(light, Keyboard);
+//	glfwSetMouseButtonCallback(light, MouseControl);
 
 	glfwMakeContextCurrent(window);
 	scene.InitScene(width, height);
 
-	//glfwMakeContextCurrent(light);
-	//scene.InitScene(width, height);
+//	glfwMakeContextCurrent(light);
+//	scene.InitScene(width, height);
 }
 
 void FaceDemo::CursorPosition(GLFWwindow* window, double xpos, double ypos) {
@@ -101,8 +101,8 @@ void FaceDemo::Loop() {
 void FaceDemo::Render() {
 	glfwMakeContextCurrent(window);
 	scene.RenderScene();
-//	glfwMakeContextCurrent(light);
-//	scene.RenderLight();
+	//glfwMakeContextCurrent(light);
+	//scene.RenderLight();
 }
 
 void FaceDemo::Terminate() {

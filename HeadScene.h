@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "Beckmann.h"
+//#include "SkyBox.h"
 
 class HeadScene :
 	public Scene
@@ -25,10 +26,7 @@ public:
 	vec3 global_ambient;
 	vec3 Kd;
 
-private:
-	void InitParameters_();
-	void InitGLFunc_();
-
+protected:
 	void RenderObject_(Object* obj, GLuint shader_ID);
 	void DrawArray_(int face_number);
 	void GetUniformLocations_(GLuint shader_ID);
@@ -38,6 +36,10 @@ private:
 
 	void UpdateModelMatrix_();
 	void CopyTexture_(GLuint tex_src, GLuint tex_dst);
+
+private:
+	void InitParameters_();
+	void InitGLFunc_();
 
 	Beckmann beckmann;
 
@@ -103,7 +105,7 @@ private:
 	GLuint fbo_add_ID;
 	GLuint fbo_thickness_ID;
 	GLuint fbo_shadow_ID;
-	
+
 	mat4 projection_matrix;
 	mat4 model_matrix;
 	mat4 view_matrix;
@@ -128,6 +130,7 @@ private:
 	
 	Object* head;
 	Object* cube;
+//	SkyBox* skybox;
 	vec2 mouse_position;
 	vec2 mouse_position_o;
 	bool mouse_press_left;

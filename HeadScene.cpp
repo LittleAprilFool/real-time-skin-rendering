@@ -42,7 +42,7 @@ void HeadScene::RenderScene()
 
 	//put together
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	RenderObject_(head, shader_bling_ID);
+	RenderObject_(head, shader_test_ID);
 }
 
 void HeadScene::RenderBlur_(int para, int rendered) {
@@ -96,31 +96,31 @@ void HeadScene::CopyTexture_(GLuint tex_src, GLuint tex_dst)
 
 void HeadScene::RenderLight()
 {
-	//depth
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_depth_ID);
 	RenderObject_(head, shader_depth_ID);
 
-	//bind fbo
+	//light effect
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_light_ID);
 	RenderObject_(head, shader_light_ID);
 	CopyTexture_(texture_light_ID, texture_toblur_ID);
 	GaussionSum_(0);
 	CopyTexture_(texture_afteradd_ID, texture_light_ID);
-	
+
 	//shadow
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_shadow_ID);
 	RenderObject_(head, shader_shadow_ID);
 	CopyTexture_(texture_shadow_ID, texture_toblur_ID);
 	GaussionSum_(1);
 	CopyTexture_(texture_afteradd_ID, texture_shadow_ID);
-	
+
 	//scattered
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_thickness_ID);
 	RenderObject_(head, shader_thickness_ID);
 	CopyTexture_(texture_thickness_ID, texture_toblur_ID);
 	GaussionSum_(1);
 	CopyTexture_(texture_afteradd_ID, texture_thickness_ID);
-	
+
+	//put together
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	RenderObject_(head, shader_test_ID);
 } 
@@ -189,6 +189,9 @@ void HeadScene::InitScene(int width, int height)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo_beckmann_ID);
 	beckmann.Render();
+
+//	skybox = new SkyBox;
+//	skybox->InitScene(width, height);
 }
 
 void HeadScene::KeyboardFunction(int key, int action) 
@@ -205,10 +208,10 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_C && action == GLFW_PRESS) light_position = vec3(0, 0, -1);
 	if (key == GLFW_KEY_V && action == GLFW_PRESS) light_position = vec3(1, 0, 0);
 	if (key == GLFW_KEY_B && action == GLFW_PRESS) light_position = vec3(-1, 0, 0);
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) rotate_factor.y += 0.2;
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) rotate_factor.y -= 0.2;
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) rotate_factor.x += 0.2;
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) rotate_factor.x -= 0.2;
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) eye.y += 0.2;
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) eye.y -= 0.2;
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) eye.x += 0.2;
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) eye.x -= 0.2;
 	if (key == GLFW_KEY_R && action == GLFW_PRESS) InitParameters_();
 
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS) blur_time = blur_time++;
@@ -247,7 +250,7 @@ void HeadScene::KeyboardFunction(int key, int action)
 	if (key == GLFW_KEY_KP_7 && action == GLFW_PRESS) shading_mode = 4;
 	if (key == GLFW_KEY_KP_8 && action == GLFW_PRESS) shading_mode = 5;
 	if (key == GLFW_KEY_KP_9 && action == GLFW_PRESS) shading_mode = 6;
-	if (key == GLFW_KEY_KP_DIVIDE && action == GLFW_PRESS) test_mode = 0;
+	if (key == GLFW_KEY_KP_DIVIDE && action == GLFW_PRESS) shading_mode = 7;
 	if (key == GLFW_KEY_KP_MULTIPLY && action == GLFW_PRESS) test_mode = 1;
 	if (key == GLFW_KEY_KP_ADD && action == GLFW_PRESS) scale_factor += 0.1;
 	if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS) scale_factor -= 0.1;
@@ -324,7 +327,7 @@ void HeadScene::InitParameters_()
 	test_mode = 0;
 	toadd_weight = 0;
 	head_rotate_on = false;
-	light_rotate_on = true;
+//	light_rotate_on = true;
 
 	GLfloat  iLeft = -0.2;
 	GLfloat iRight = 0.2;
